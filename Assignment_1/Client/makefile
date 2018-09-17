@@ -1,6 +1,7 @@
-	common_sources=	sum299.c
+	common_sources=	udp_client.c \
+			client_support.c
 	
-	common_includes =
+	common_includes = client_support.h
 
 	common_flags =	-g \
 			-O3 \
@@ -21,28 +22,28 @@
 	clean \
 	build 
 
-build:	sum299.elf	
+build:	udp_client.elf	
 
-%.elf:%.o
-	$(CC)	$(flags)	$(includes)	-o	$@	$<	
+%.elf:%.o	$(includes)
+	$(CC)	$(flags)	-o	$@	$<	
 
-%.i:%.c	
-	$(CC)	$(flags)	$(includes)	-S	$<	-o	$@
+%.i:%.c		$(includes)
+	$(CC)	$(flags)	-S	$<	-o	$@
 
-%.asm:%.c	
-	$(CC)	$(flags)	$(includes)	-S	$<	-o	$@
+%.asm:%.c	$(includes)
+	$(CC)	$(flags)	-S	$<	-o	$@
 
-%.o:%.c	
-	$(CC)	$(flags)	$(includes)	-c	$<	-o	$@
+%.o:%.c		$(includes)
+	$(CC)	$(flags)	-c	$<	-o	$@
 
-%.o:%.s	
-	$(CC)	$(flags)	$(includes)	-c	$<	-o	$@
+%.o:%.s		$(includes)
+	$(CC)	$(flags)	-c	$<	-o	$@
+	
+%.d:%.c		$(includes)
+	$(CC)	$(flags)	-M	$<	-o	$@	
 
-%.d:%.c	
-	$(CC)	$(flags)	$(includes)	-M	$<	-o	$@	
-
-%.d:%.s	
-	$(CC)	$(flags)	$(includes)	-M	$<	-o	$@
+%.d:%.s		$(includes)
+	$(CC)	$(flags)	-M	$<	-o	$@
 
 compile-all:	$(objects) 
 
