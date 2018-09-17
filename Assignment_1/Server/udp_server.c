@@ -3,41 +3,10 @@
  * usage: udpserver <port>
  */
 
-#include <stdio.h>
-#include <unistd.h>
-#include <stdlib.h>
-#include <stdint.h>
-#include <string.h>
-#include <netdb.h>
-#include <sys/types.h> 
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include "commons.h"
-#define BUFSIZE 1024
-
-/*
- * error - wrapper for perror
- */
-void error(uint8_t *msg) 
-{
-  	perror(msg);
-  	exit(1);
-}
+#include "server_support.h"
 
 int32_t main(int32_t argc, uint8_t **argv) 
 {
-  	int32_t sockfd; /* socket */
-  	int32_t portno; /* port to listen on */
-  	int32_t clientlen; /* byte size of client's address */
-  	struct sockaddr_in serveraddr; /* server's addr */
-  	struct sockaddr_in clientaddr; /* client addr */
-  	struct hostent *hostp; /* client host info */
-  	uint8_t buf[BUFSIZE]; /* message buf */
-  	uint8_t *hostaddrp; /* dotted decimal host addr string */
-  	int32_t optval; /* flag value for setsockopt */
-  	int32_t n; /* message byte size */
-
   	/* 
    	* check command line arguments 
    	*/

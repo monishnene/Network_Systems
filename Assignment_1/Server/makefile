@@ -1,14 +1,15 @@
-	common_sources=	udp_server.c
+	common_sources=	udp_server.c \
+			server_support.c
 	
-	common_includes =
+	common_includes = client_support.h 
 
 	common_flags =	-g \
-			-O3 \
+			-O0 \
 			-lpthread\
 			-pthread \
 			-lrt \
 			-lm \
-			-DLINUX
+			-lc
 
 	CC=gcc
 	flags =	$(common_flags)

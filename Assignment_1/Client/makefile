@@ -1,15 +1,15 @@
 	common_sources=	udp_client.c \
 			client_support.c
 	
-	common_includes = client_support.h
+	common_includes = client_support.h 
 
 	common_flags =	-g \
-			-O3 \
+			-O0 \
 			-lpthread\
 			-pthread \
 			-lrt \
-			-lm \
-			-DLINUX
+			-lm 
+			
 
 	CC=gcc
 	flags =	$(common_flags)
@@ -24,11 +24,11 @@
 
 build:	udp_client.elf	
 
-%.elf:%.o	$(includes)
-	$(CC)	$(flags)	-o	$@	$<	
+%.elf:	$(objects)	$(deps)	
+	$(CC)	$(flags)	-o	$@	$(objects)
 
 %.i:%.c		$(includes)
-	$(CC)	$(flags)	-S	$<	-o	$@
+	$(CC)	$(flags)	-E	$<	-o	$@
 
 %.asm:%.c	$(includes)
 	$(CC)	$(flags)	-S	$<	-o	$@

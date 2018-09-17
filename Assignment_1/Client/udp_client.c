@@ -6,6 +6,7 @@
 
 int32_t main(int32_t argc, uint8_t **argv) 
 {
+	uint8_t i=0;
     	/* check command line arguments */
     	if (argc != 3) 
 	{
@@ -42,6 +43,7 @@ int32_t main(int32_t argc, uint8_t **argv)
 	{
    		printf("Please enter msg: ");
     		fgets(buf, BUFSIZE, stdin);
+		i = command_catch(buf);
 
     		/* send the message to the server */
     		serverlen = sizeof(serveraddr);
