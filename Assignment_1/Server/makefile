@@ -1,7 +1,7 @@
 	common_sources=	udp_server.c \
 			server_support.c
 	
-	common_includes = client_support.h 
+	common_includes = server_support.h 
 
 	common_flags =	-g \
 			-O0 \
@@ -24,8 +24,8 @@
 
 build:	udp_server.elf	
 
-%.elf:%.o	$(includes)
-	$(CC)	$(flags)	-o	$@	$<	
+%.elf:	$(objects)	$(deps)
+	$(CC)	$(flags)	-o	$@	$(objects)	
 
 %.i:%.c		$(includes)
 	$(CC)	$(flags)	-S	$<	-o	$@

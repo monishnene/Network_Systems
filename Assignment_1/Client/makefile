@@ -8,8 +8,8 @@
 			-lpthread\
 			-pthread \
 			-lrt \
-			-lm 
-			
+			-lm \
+			-lc
 
 	CC=gcc
 	flags =	$(common_flags)

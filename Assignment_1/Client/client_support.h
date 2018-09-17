@@ -33,8 +33,8 @@ static uint8_t get_str[]="get";
 static uint8_t put_str[]="put";
 static uint8_t del_str[]="delete";
 static uint8_t ls_str[]="ls";
-static uint8_t exit_str[]="exit";
-uint8_t filename[100];
+static uint8_t ex_str[]="exit";
+uint8_t filename[20];
 
 void error(uint8_t *msg);
 uint8_t command_catch(uint8_t* input);

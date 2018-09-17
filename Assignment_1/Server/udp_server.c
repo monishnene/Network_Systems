@@ -7,6 +7,7 @@
 
 int32_t main(int32_t argc, uint8_t **argv) 
 {
+	uint8_t condition=1,command=0;
   	/* 
    	* check command line arguments 
    	*/
@@ -50,34 +51,67 @@ int32_t main(int32_t argc, uint8_t **argv)
    	* main loop: wait for a datagram, then echo it
    	*/
   	clientlen = sizeof(clientaddr);
-  	while (1) 
+  	while (condition) 
 	{
+    		/*
+     		* recvfrom: receive a UDP datagram from a client
+     		*/
+    		bzero(buf, BUFSIZE);
+    		n = recvfrom(sockfd, buf, BUFSIZE, 0,(struct sockaddr *) &clientaddr, &clientlen);
+    		if (n < 0)
+      			error("ERROR in recvfrom");
 
-    	/*
-     	* recvfrom: receive a UDP datagram from a client
-     	*/
-    	bzero(buf, BUFSIZE);
-    	n = recvfrom(sockfd, buf, BUFSIZE, 0,(struct sockaddr *) &clientaddr, &clientlen);
-    	if (n < 0)
-      		error("ERROR in recvfrom");
-
-    	/* 
-     	* gethostbyaddr: determine who sent the datagram
-     	*/
-    	hostp = gethostbyaddr((const uint8_t *)&clientaddr.sin_addr.s_addr, sizeof(clientaddr.sin_addr.s_addr), AF_INET);
-    	if (hostp == NULL)
-      		error("ERROR on gethostbyaddr");
-    	hostaddrp = inet_ntoa(clientaddr.sin_addr);
-    	if (hostaddrp == NULL)
-      		error("ERROR on inet_ntoa\n");
-    	printf("server received datagram from %s (%s)\n", hostp->h_name, hostaddrp);
-   	printf("server received %ld/%d bytes: %s\n", strlen(buf), n, buf);
-    
-    	/* 
-     	* sendto: echo the input back to the client 
-     	*/
-    	n = sendto(sockfd, buf, strlen(buf), 0, (struct sockaddr *) &clientaddr, clientlen);
-    	if (n < 0) 
-     		error("ERROR in sendto");
-  }
+    		/* 
+     		* gethostbyaddr: determine who sent the datagram
+     		*/
+    		hostp = gethostbyaddr((const uint8_t *)&clientaddr.sin_addr.s_addr, sizeof(clientaddr.sin_addr.s_addr), AF_INET);
+    		if (hostp == NULL)
+      			error("ERROR on gethostbyaddr");
+    		hostaddrp = inet_ntoa(clientaddr.sin_addr);
+    		if (hostaddrp == NULL)
+      			error("ERROR on inet_ntoa\n");
+    		printf("server received datagram from %s (%s)\n", hostp->h_name, hostaddrp);
+   		printf("server received %ld/%d bytes: %s\n", strlen(buf), n, buf);
+		command = command_catch(buf);
+		switch(command)
+		{
+			case get:
+			{
+				syslog(SYSLOG_PRIORITY,"\nCommand Caught = %d get %s",command,filename);
+				break;
+			}
+			case put:
+			{
+				syslog(SYSLOG_PRIORITY,"\nCommand Caught = %d put %s",command,filename);
+				break;
+			}
+			case del:
+			{
+				syslog(SYSLOG_PRIORITY,"\nCommand Caught = %d del %s",command,filename);
+				break;
+			}
+			case ls:
+			{
+				syslog(SYSLOG_PRIORITY,"\nCommand Caught = %d ls",command);
+				break;
+			}
+			case ex:
+			{
+				syslog(SYSLOG_PRIORITY,"\nCommand Caught = %d ex",command);
+				condition=0;
+				break;
+			}
+			default:
+			{
+				syslog(SYSLOG_PRIORITY,"\nNo Command Caught = %d",command);
+				break;
+			}
+		}
+    		/* 
+     		* sendto: echo the input back to the client 
+     		*/
+    		n = sendto(sockfd, buf, strlen(buf), 0, (struct sockaddr *) &clientaddr, clientlen);
+    		if (n < 0) 
+     			error("ERROR in sendto");
+  	}
 }

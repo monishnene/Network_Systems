@@ -6,7 +6,7 @@
 
 int32_t main(int32_t argc, uint8_t **argv) 
 {
-	uint8_t i=0;
+	uint8_t command=0;
     	/* check command line arguments */
     	if (argc != 3) 
 	{
@@ -43,8 +43,40 @@ int32_t main(int32_t argc, uint8_t **argv)
 	{
    		printf("Please enter msg: ");
     		fgets(buf, BUFSIZE, stdin);
-		i = command_catch(buf);
-
+		command = command_catch(buf);
+		switch(command)
+		{
+			case get:
+			{
+				syslog(SYSLOG_PRIORITY,"\nCommand Caught = %d get %s",command,filename);
+				break;
+			}
+			case put:
+			{
+				syslog(SYSLOG_PRIORITY,"\nCommand Caught = %d put %s",command,filename);
+				break;
+			}
+			case del:
+			{
+				syslog(SYSLOG_PRIORITY,"\nCommand Caught = %d del %s",command,filename);
+				break;
+			}
+			case ls:
+			{
+				syslog(SYSLOG_PRIORITY,"\nCommand Caught = %d ls",command);
+				break;
+			}
+			case ex:
+			{
+				syslog(SYSLOG_PRIORITY,"\nCommand Caught = %d ex",command);
+				break;
+			}
+			default:
+			{
+				syslog(SYSLOG_PRIORITY,"\nNo Command Caught = %d",command);
+				break;
+			}
+		}
     		/* send the message to the server */
     		serverlen = sizeof(serveraddr);
     		n = sendto(sockfd, buf, strlen(buf), 0, &serveraddr, serverlen);
