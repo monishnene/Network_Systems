@@ -8,6 +8,15 @@ void error(uint8_t *msg)
     	exit(0);
 }
 
+void send_to_client(uint8_t* str)
+{
+	/* 
+     	* sendto: echo the input back to the client 
+     	*/
+    	n = sendto(sockfd, str, strlen(str), 0, (struct sockaddr *) &clientaddr, clientlen);
+	return;
+}
+
 uint8_t command_catch(uint8_t* input)
 {
 	uint8_t command_caught=0;
@@ -17,23 +26,23 @@ uint8_t command_catch(uint8_t* input)
 		input += strlen(get_str)+1;
 		strcpy(filename,input);
 	}
-	if(!strncmp(input,put_str,strlen(put_str)))
+	else if(!strncmp(input,put_str,strlen(put_str)))
 	{
 		command_caught=put;
 		input += strlen(put_str)+1;
 		strcpy(filename,input);
 	}
-	if(!strncmp(input,del_str,strlen(del_str)))
+	else if(!strncmp(input,del_str,strlen(del_str)))
 	{
 		command_caught=del;
 		input += strlen(del_str)+1;
 		strcpy(filename,input);
 	}
-	if(!strncmp(input,ls_str,strlen(ls_str)))
+	else if(!strncmp(input,ls_str,strlen(ls_str)))
 	{
 		command_caught=ls;
 	}
-	if(!strncmp(input,ex_str,strlen(ex_str)))
+	else if(!strncmp(input,ex_str,strlen(ex_str)))
 	{
 		command_caught=ex;
 	}

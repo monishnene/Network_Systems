@@ -74,7 +74,6 @@ int32_t main(int32_t argc, uint8_t **argv)
 			default:
 			{
 				syslog(SYSLOG_PRIORITY,"\nNo Command Caught = %d",command);
-				break;
 			}
 		}
     		/* send the message to the server */

@@ -78,39 +78,47 @@ int32_t main(int32_t argc, uint8_t **argv)
 			case get:
 			{
 				syslog(SYSLOG_PRIORITY,"\nCommand Caught = %d get %s",command,filename);
+				send_to_client(buf);
 				break;
 			}
 			case put:
 			{
 				syslog(SYSLOG_PRIORITY,"\nCommand Caught = %d put %s",command,filename);
+				send_to_client(buf);
 				break;
 			}
 			case del:
 			{
+				delete_command[5]=32;
+				delete_command[6]=0;
 				syslog(SYSLOG_PRIORITY,"\nCommand Caught = %d del %s",command,filename);
+				final_command=strcat(delete_command,filename);
+				syslog(SYSLOG_PRIORITY,"\nSystem command %s",final_command);
+				system(final_command);
+				send_to_client(buf);
 				break;
 			}
 			case ls:
 			{
 				syslog(SYSLOG_PRIORITY,"\nCommand Caught = %d ls",command);
+				system("ls>>ls.txt");
+				send_to_client(buf);
 				break;
 			}
 			case ex:
 			{
 				syslog(SYSLOG_PRIORITY,"\nCommand Caught = %d ex",command);
+				send_to_client(buf);
 				condition=0;
 				break;
 			}
 			default:
 			{
 				syslog(SYSLOG_PRIORITY,"\nNo Command Caught = %d",command);
+				send_to_client(buf);
 				break;
 			}
 		}
-    		/* 
-     		* sendto: echo the input back to the client 
-     		*/
-    		n = sendto(sockfd, buf, strlen(buf), 0, (struct sockaddr *) &clientaddr, clientlen);
     		if (n < 0) 
      			error("ERROR in sendto");
   	}

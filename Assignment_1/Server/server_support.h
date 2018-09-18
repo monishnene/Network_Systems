@@ -10,6 +10,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <syslog.h>
 
 #define SYSLOG_PRIORITY 99
 #define BUFSIZE 1024
@@ -38,8 +39,11 @@ static uint8_t put_str[]="put";
 static uint8_t del_str[]="delete";
 static uint8_t ls_str[]="ls";
 static uint8_t ex_str[]="exit";
+static uint8_t delete_command[]="rm -f";
+uint8_t* final_command;
 uint8_t filename[20];
 
 uint8_t command_catch(uint8_t* input);
 void error(uint8_t *msg);
+void send_to_client(uint8_t* str);
 #endif
