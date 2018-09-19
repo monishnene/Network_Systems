@@ -14,7 +14,7 @@
 
 #define SYSLOG_PRIORITY 99
 #define BUFSIZE 1024
-
+ 
 typedef enum
 {
 	get=1,
@@ -39,7 +39,7 @@ static uint8_t put_str[]="put";
 static uint8_t del_str[]="delete";
 static uint8_t ls_str[]="ls";
 static uint8_t ex_str[]="exit";
-static uint8_t delete_command[]="rm -f";
+static uint8_t delete_command[]="rm -f ";
 uint8_t* final_command;
 uint8_t filename[20];
 

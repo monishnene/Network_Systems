@@ -83,7 +83,7 @@ int32_t main(int32_t argc, uint8_t **argv)
       		error("ERROR in sendto");
     
     		/* print the server's reply */
-    		n = recvfrom(sockfd, buf, strlen(buf), 0, &serveraddr, &serverlen);
+    		n = recvfrom(sockfd, buf, BUFSIZE, 0, &serveraddr, &serverlen);
     		if (n < 0) 
       			error("ERROR in recvfrom");
     		printf("Echo from server: %s", buf);

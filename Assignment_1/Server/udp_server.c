@@ -78,43 +78,42 @@ int32_t main(int32_t argc, uint8_t **argv)
 			case get:
 			{
 				syslog(SYSLOG_PRIORITY,"\nCommand Caught = %d get %s",command,filename);
-				send_to_client(buf);
+				send_to_client("Get Initiated\n");
 				break;
 			}
 			case put:
 			{
 				syslog(SYSLOG_PRIORITY,"\nCommand Caught = %d put %s",command,filename);
-				send_to_client(buf);
+				send_to_client("Put Initiated\n");
 				break;
 			}
 			case del:
 			{
-				delete_command[5]=32;
 				delete_command[6]=0;
 				syslog(SYSLOG_PRIORITY,"\nCommand Caught = %d del %s",command,filename);
 				final_command=strcat(delete_command,filename);
 				syslog(SYSLOG_PRIORITY,"\nSystem command %s",final_command);
 				system(final_command);
-				send_to_client(buf);
+				send_to_client("Delete done\n");
 				break;
 			}
 			case ls:
 			{
 				syslog(SYSLOG_PRIORITY,"\nCommand Caught = %d ls",command);
 				system("ls>>ls.txt");
-				send_to_client(buf);
+				send_to_client("ls done\n");
 				break;
 			}
 			case ex:
 			{
 				syslog(SYSLOG_PRIORITY,"\nCommand Caught = %d ex",command);
-				send_to_client(buf);
+				send_to_client("Server Exit\n");
 				condition=0;
 				break;
 			}
 			default:
 			{
-				syslog(SYSLOG_PRIORITY,"\nNo Command Caught = %d",command);
+				syslog(SYSLOG_PRIORITY,"No Command Caught = %d",command);
 				send_to_client(buf);
 				break;
 			}
