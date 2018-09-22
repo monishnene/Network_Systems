@@ -44,16 +44,24 @@ int32_t main(int32_t argc, uint8_t **argv)
    		printf("Please enter msg: ");
     		fgets(buf, BUFSIZE, stdin);
 		command = command_catch(buf);
+		/* send the message to the server */
+    		serverlen = sizeof(serveraddr);
+    		n = sendto(sockfd, buf, strlen(buf), 0, &serveraddr, serverlen);
+   		if (n < 0) 
+      		error("ERROR in sendto");
+    
 		switch(command)
 		{
 			case get:
 			{
 				syslog(SYSLOG_PRIORITY,"\nCommand Caught = %d get %s",command,filename);
+				receive_file(filename);
 				break;
 			}
 			case put:
 			{
 				syslog(SYSLOG_PRIORITY,"\nCommand Caught = %d put %s",command,filename);
+				send_file(filename);
 				break;
 			}
 			case del:
@@ -76,12 +84,6 @@ int32_t main(int32_t argc, uint8_t **argv)
 				syslog(SYSLOG_PRIORITY,"\nNo Command Caught = %d",command);
 			}
 		}
-    		/* send the message to the server */
-    		serverlen = sizeof(serveraddr);
-    		n = sendto(sockfd, buf, strlen(buf), 0, &serveraddr, serverlen);
-   		if (n < 0) 
-      		error("ERROR in sendto");
-    
     		/* print the server's reply */
     		n = recvfrom(sockfd, buf, BUFSIZE, 0, &serveraddr, &serverlen);
     		if (n < 0) 
