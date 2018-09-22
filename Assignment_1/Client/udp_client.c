@@ -72,6 +72,8 @@ int32_t main(int32_t argc, uint8_t **argv)
 			case ls:
 			{
 				syslog(SYSLOG_PRIORITY,"\nCommand Caught = %d ls",command);
+				receive_file("ls.txt");
+				read_file("ls.txt");
 				break;
 			}
 			case ex:

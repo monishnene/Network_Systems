@@ -45,5 +45,6 @@ void error(uint8_t *msg);
 uint8_t command_catch(uint8_t* input);
 void send_file(uint8_t* filename);
 void receive_file(uint8_t* filename);
+void read_file(uint8_t* fname);
 
 #endif

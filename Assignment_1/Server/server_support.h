@@ -14,6 +14,10 @@
 
 #define SYSLOG_PRIORITY 99
 #define BUFSIZE 1024
+#define PACKET_SIZE 32
+#define DATA_SIZE 100
+#define NEW_LINE 10
+#define EOF_new 1
  
 typedef enum
 {
@@ -26,7 +30,7 @@ typedef enum
 
 int32_t sockfd; /* socket */
 int32_t portno; /* port to listen on */
-int32_t clientlen; /* byte size of client's address */
+uint32_t clientlen; /* byte size of client's address */
 struct sockaddr_in serveraddr; /* server's addr */
 struct sockaddr_in clientaddr; /* client addr */
 struct hostent *hostp; /* client host info */
@@ -39,6 +43,7 @@ static uint8_t put_str[]="put";
 static uint8_t del_str[]="delete";
 static uint8_t ls_str[]="ls";
 static uint8_t ex_str[]="exit";
+static uint8_t EOF_message[]="End_of_File";
 static uint8_t delete_command[]="rm -f ";
 uint8_t* final_command;
 uint8_t filename[20];
@@ -46,4 +51,7 @@ uint8_t filename[20];
 uint8_t command_catch(uint8_t* input);
 void error(uint8_t *msg);
 void send_to_client(uint8_t* str);
+void send_file(uint8_t* filename);
+void receive_file(uint8_t* filename);
+
 #endif

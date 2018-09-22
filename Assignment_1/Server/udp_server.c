@@ -78,13 +78,15 @@ int32_t main(int32_t argc, uint8_t **argv)
 			case get:
 			{
 				syslog(SYSLOG_PRIORITY,"\nCommand Caught = %d get %s",command,filename);
-				send_to_client("Get Initiated\n");
+				send_file(filename);
+				send_to_client("file sent\n");
 				break;
 			}
 			case put:
 			{
 				syslog(SYSLOG_PRIORITY,"\nCommand Caught = %d put %s",command,filename);
-				send_to_client("Put Initiated\n");
+				receive_file(filename);
+				send_to_client("file received\n");
 				break;
 			}
 			case del:
@@ -100,7 +102,9 @@ int32_t main(int32_t argc, uint8_t **argv)
 			case ls:
 			{
 				syslog(SYSLOG_PRIORITY,"\nCommand Caught = %d ls",command);
+				system("rm -f ls.txt");
 				system("ls>>ls.txt");
+				send_file("ls.txt");
 				send_to_client("ls done\n");
 				break;
 			}
