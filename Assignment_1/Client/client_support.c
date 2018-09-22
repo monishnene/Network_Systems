@@ -33,7 +33,10 @@ uint8_t command_catch(uint8_t* input)
 	{
 		command_caught=del;
 		input += strlen(del_str)+1;
-		strcpy(filename,input);
+		while(*(input)!=NEW_LINE)
+		{
+			filename[i++]=*(input++);
+		}
 	}
 	else if(!strncmp(input,ls_str,strlen(ls_str)))
 	{
@@ -113,6 +116,7 @@ void receive_file(uint8_t* fname)
 		else if(data!=NULL)
 		{
 			error_check=fputs(data,fptr);
+			syslog(SYSLOG_PRIORITY,"%s",data);
 		}
 		else
 		{

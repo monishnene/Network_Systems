@@ -41,6 +41,7 @@ int32_t main(int32_t argc, uint8_t **argv)
 	
 	while(1)
 	{
+		bzero(buf, BUFSIZE);
    		printf("Please enter msg: ");
     		fgets(buf, BUFSIZE, stdin);
 		command = command_catch(buf);
@@ -87,6 +88,7 @@ int32_t main(int32_t argc, uint8_t **argv)
 			}
 		}
     		/* print the server's reply */
+		bzero(buf, BUFSIZE);
     		n = recvfrom(sockfd, buf, BUFSIZE, 0, &serveraddr, &serverlen);
     		if (n < 0) 
       			error("ERROR in recvfrom");

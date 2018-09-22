@@ -33,7 +33,7 @@ uint8_t command_catch(uint8_t* input)
 	{
 		command_caught=put;
 		input += strlen(put_str)+1;
-		while(*(input)=NEW_LINE)
+		while(*(input)!=NEW_LINE)
 		{
 			filename[i++]=*(input++);
 		}
@@ -42,7 +42,10 @@ uint8_t command_catch(uint8_t* input)
 	{
 		command_caught=del;
 		input += strlen(del_str)+1;
-		strcpy(filename,input);
+		while(*(input)!=NEW_LINE)
+		{
+			filename[i++]=*(input++);
+		}
 	}
 	else if(!strncmp(input,ls_str,strlen(ls_str)))
 	{
@@ -54,7 +57,6 @@ uint8_t command_catch(uint8_t* input)
 	}
 	return command_caught;
 }
-
 
 void send_file(uint8_t* fname)
 {
@@ -105,12 +107,13 @@ void receive_file(uint8_t* fname)
 		else if(data!=NULL)
 		{
 			error_check=fputs(data,fptr);
+			syslog(SYSLOG_PRIORITY,"%s",data);
 		}
 		else
 		{
 			condition=0;
 		}
-	}	
-	fclose(fptr);
+	}
+	fclose(fptr);	
 	return;
 }

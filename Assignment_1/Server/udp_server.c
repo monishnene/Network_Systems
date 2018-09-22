@@ -91,11 +91,8 @@ int32_t main(int32_t argc, uint8_t **argv)
 			}
 			case del:
 			{
-				delete_command[6]=0;
 				syslog(SYSLOG_PRIORITY,"\nCommand Caught = %d del %s",command,filename);
-				final_command=strcat(delete_command,filename);
-				syslog(SYSLOG_PRIORITY,"\nSystem command %s",final_command);
-				system(final_command);
+				remove(filename);
 				send_to_client("Delete done\n");
 				break;
 			}
