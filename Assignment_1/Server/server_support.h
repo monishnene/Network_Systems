@@ -51,7 +51,7 @@ uint8_t filename[20];
 uint8_t command_catch(uint8_t* input);
 void error(uint8_t *msg);
 void send_to_client(uint8_t* str);
-void send_file(uint8_t* filename);
-void receive_file(uint8_t* filename);
+int32_t send_file(uint8_t* fname);
+int32_t receive_file(uint8_t* fname);
 
 #endif

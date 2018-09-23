@@ -58,51 +58,58 @@ uint8_t command_catch(uint8_t* input)
 	return command_caught;
 }
 
-void send_file(uint8_t* fname)
+int32_t send_file(uint8_t* fname)
 {
 	int32_t eof_check=0;
 	uint8_t* data=(uint8_t*)malloc(PACKET_SIZE);
 	syslog(SYSLOG_PRIORITY,"send file %s",fname);
-	FILE *fptr = fopen(fname,"r");
-	while(eof_check != EOF_new)
-	{		
-		fgets(data,PACKET_SIZE,fptr);
-		eof_check=feof(fptr);
-		if(eof_check == EOF_new)
-		{
-			break;
-		}
-		if(fptr!=NULL)
+	FILE *fptr;
+	if(!access(fname,F_OK))
+	{	
+		fptr = fopen(fname,"r");
+		while(eof_check != EOF_new)
 		{		
-			if(data!=NULL)
-			{	
-				n = sendto(sockfd, data, PACKET_SIZE, 0, (struct sockaddr *) &clientaddr, clientlen);
-				syslog(SYSLOG_PRIORITY,"%s",data);
+			fgets(data,PACKET_SIZE,fptr);
+			eof_check=feof(fptr);
+			if(eof_check == EOF_new)
+			{
+				break;
+			}
+			if(fptr!=NULL)
+			{		
+				if(data!=NULL)
+				{	
+					n = sendto(sockfd, data, PACKET_SIZE, 0, (struct sockaddr *) &clientaddr, clientlen);
+					syslog(SYSLOG_PRIORITY,"%s",data);
+				}
 			}
 		}
-		else
-		{		
-			syslog(SYSLOG_PRIORITY,"The file %s not found",fname);
-		}
+		fclose(fptr);
+	}
+	else
+	{		
+		syslog(SYSLOG_PRIORITY,"The file %s not found",fname);
+		eof_check=0;
 	}
 	n = sendto(sockfd, EOF_message, PACKET_SIZE, 0, (struct sockaddr *) &clientaddr, clientlen);
-	fclose(fptr);
-	return;
+	return eof_check;
 }
 
-void receive_file(uint8_t* fname)
+int32_t receive_file(uint8_t* fname)
 {
-	uint32_t error_check=0;
+	int32_t error_check=0,package_counter=0;
 	uint8_t condition=1;
-	uint8_t* data=(uint8_t*)malloc(PACKET_SIZE);
+	uint8_t* data=(uint8_t*)malloc(PACKET_SIZE);	
 	syslog(SYSLOG_PRIORITY,"receive file %s",fname);
 	FILE *fptr = fopen(fname,"w");
 	while(condition)
 	{
-		n = recvfrom(sockfd, data, PACKET_SIZE, 0, (struct sockaddr *) &clientaddr, clientlen);
+		n = recvfrom(sockfd, data, PACKET_SIZE, 0, (struct sockaddr *) &clientaddr, clientlen);		
+		package_counter++;
 		if(!strcmp(data,EOF_message))
 		{
-			condition=0;	
+			package_counter--;
+			condition=0;		
 		}
 		else if(data!=NULL)
 		{
@@ -115,5 +122,10 @@ void receive_file(uint8_t* fname)
 		}
 	}
 	fclose(fptr);	
-	return;
+	if(!package_counter)
+	{
+		remove(fname);
+	}
+	syslog(SYSLOG_PRIORITY,"File Saved %s",fname);
+	return package_counter;
 }

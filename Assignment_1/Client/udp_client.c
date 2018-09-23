@@ -7,6 +7,7 @@
 int32_t main(int32_t argc, uint8_t **argv) 
 {
 	uint8_t command=0;
+	int32_t error_check=11;
     	/* check command line arguments */
     	if (argc != 3) 
 	{
@@ -62,7 +63,13 @@ int32_t main(int32_t argc, uint8_t **argv)
 			case put:
 			{
 				syslog(SYSLOG_PRIORITY,"\nCommand Caught = %d put %s",command,filename);
-				send_file(filename);
+				error_check=send_file(filename);
+				syslog(SYSLOG_PRIORITY,"errorcheck=%d",error_check);
+				if(!error_check)
+				{				
+					syslog(SYSLOG_PRIORITY,"File %s is not found.",filename);
+					printf("File %s is not found.\n",filename);
+				}				
 				break;
 			}
 			case del:
@@ -92,7 +99,7 @@ int32_t main(int32_t argc, uint8_t **argv)
     		n = recvfrom(sockfd, buf, BUFSIZE, 0, &serveraddr, &serverlen);
     		if (n < 0) 
       			error("ERROR in recvfrom");
-    		printf("Echo from server: %s", buf);
+    		printf("Server: %s", buf);
 	}
 	return 0;
 }

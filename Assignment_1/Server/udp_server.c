@@ -8,6 +8,7 @@
 int32_t main(int32_t argc, uint8_t **argv) 
 {
 	uint8_t condition=1,command=0;
+	int32_t error_check=11;
   	/* 
    	* check command line arguments 
    	*/
@@ -73,20 +74,36 @@ int32_t main(int32_t argc, uint8_t **argv)
     		printf("server received datagram from %s (%s)\n", hostp->h_name, hostaddrp);
    		printf("server received %ld/%d bytes: %s\n", strlen(buf), n, buf);
 		command = command_catch(buf);
+		bzero(buf, BUFSIZE);
 		switch(command)
 		{
 			case get:
 			{
 				syslog(SYSLOG_PRIORITY,"\nCommand Caught = %d get %s",command,filename);
-				send_file(filename);
-				send_to_client("file sent\n");
+				error_check=send_file(filename);
+				syslog(SYSLOG_PRIORITY,"errorcheck=%d",error_check);
+				if(!error_check)
+				{				
+					send_to_client("File not found.\n");
+				}
+				else
+				{				
+					send_to_client("File sent.\n");
+				}				
 				break;
 			}
 			case put:
 			{
 				syslog(SYSLOG_PRIORITY,"\nCommand Caught = %d put %s",command,filename);
-				receive_file(filename);
-				send_to_client("file received\n");
+				error_check=receive_file(filename);
+				if(!error_check)
+				{				
+					send_to_client("File not received.\n");
+				}
+				else
+				{				
+					send_to_client("File received.\n");
+				}
 				break;
 			}
 			case del:

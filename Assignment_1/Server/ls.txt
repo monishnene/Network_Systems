@@ -1,5 +1,9 @@
+aaa
+ass
+dick
 ls.txt
 makefile
+rex
 server_support.c
 server_support.h
 server_support.o
@@ -8,3 +12,4 @@ test_stoc
 udp_server.c
 udp_server.elf
 udp_server.o
+yourmother
