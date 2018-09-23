@@ -74,7 +74,6 @@ int32_t main(int32_t argc, uint8_t **argv)
     		printf("server received datagram from %s (%s)\n", hostp->h_name, hostaddrp);
    		printf("server received %ld/%d bytes: %s\n", strlen(buf), n, buf);
 		command = command_catch(buf);
-		bzero(buf, BUFSIZE);
 		switch(command)
 		{
 			case get:
@@ -132,7 +131,9 @@ int32_t main(int32_t argc, uint8_t **argv)
 			default:
 			{
 				syslog(SYSLOG_PRIORITY,"No Command Caught = %d",command);
+				strcat(buf,"It is an Invalid Command.\n");
 				send_to_client(buf);
+				bzero(buf, BUFSIZE);
 				break;
 			}
 		}

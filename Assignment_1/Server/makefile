@@ -11,6 +11,15 @@
 			-lm \
 			-lc
 
+	upload_files =	makefile \
+		  	udp_server.c \
+			server_support.c \
+			server_support.h \
+			udp_server.elf \
+			test_stoc
+
+	port_number = 6313
+
 	CC=gcc
 	flags =	$(common_flags)
 	sources =	$(common_sources)
@@ -20,7 +29,10 @@
 
 .PHONY:	compile-all \
 	clean \
-	build 
+	build \
+	upload \
+	go \
+	run \
 
 build:	udp_server.elf	
 
@@ -45,7 +57,19 @@ build:	udp_server.elf
 %.d:%.s		$(includes)
 	$(CC)	$(flags)	-M	$<	-o	$@
 
-compile-all:	$(objects) 
+compile-all:	$(objects)
+
+upload:
+	scp	$(upload_files)	mone9255@elra-01.cs.colorado.edu:~/
+
+go:
+	ssh	mone9255@elra-01.cs.colorado.edu
+
+run:
+	./udp_server.elf	$(port_number)
+
+local:
+	./udp_server.elf	$(port_number)
 
 clean :
 	rm	-f	*.o	*.s	*.i	*.o	*.d	*.elf *.swp

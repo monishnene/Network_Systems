@@ -97,7 +97,8 @@ int32_t send_file(uint8_t* fname)
 
 int32_t receive_file(uint8_t* fname)
 {
-	int32_t error_check=0,package_counter=0;
+	uint64_t acknowlege=0,package_counter=0;
+	int32_t error_check=0;
 	uint8_t condition=1;
 	uint8_t* data=(uint8_t*)malloc(PACKET_SIZE);	
 	syslog(SYSLOG_PRIORITY,"receive file %s",fname);

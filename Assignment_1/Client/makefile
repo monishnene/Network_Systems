@@ -10,6 +10,10 @@
 			-lrt \
 			-lm \
 			-lc
+	
+	ip =	128.138.201.66
+
+	port_number = 6313
 
 	CC=gcc
 	flags =	$(common_flags)
@@ -20,7 +24,9 @@
 
 .PHONY:	compile-all \
 	clean \
-	build 
+	build \
+	run \
+	local
 
 build:	udp_client.elf	
 
@@ -46,6 +52,12 @@ build:	udp_client.elf
 	$(CC)	$(flags)	-M	$<	-o	$@
 
 compile-all:	$(objects) 
+
+run:
+	./udp_client.elf	$(ip)	$(port_number)
+
+local:
+	./udp_client.elf	localhost	$(port_number)
 
 clean :
 	rm	-f	*.o	*.s	*.i	*.o	*.d	*.elf *.swp
