@@ -82,7 +82,8 @@ int32_t send_file(uint8_t* fname)
 	{	
 		fptr = fopen(fname,"r");
 		while(eof_check != EOF_NEW)
-		{		
+		{	
+			bzero(data, PACKET_SIZE);
 			fgets(data,PACKET_SIZE,fptr);
 			eof_check=feof(fptr);
 			if(fptr!=NULL)
@@ -104,10 +105,10 @@ int32_t send_file(uint8_t* fname)
 						//syslog(SYSLOG_PRIORITY,"acknowledge=%ld",acknowledge);
 						if(acknowledge==package_counter)
 						{
-							ack=1;				
-							package_counter++;					
+							package_counter++;
+							ack=1;						
 						}
-					}		
+					}	
 				}
 			}
 		}

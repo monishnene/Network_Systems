@@ -15,8 +15,7 @@
 		  	udp_server.c \
 			server_support.c \
 			server_support.h \
-			udp_server.elf \
-			test_stoc
+			udp_server.elf 
 
 	port_number = 6313
 

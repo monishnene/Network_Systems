@@ -81,6 +81,8 @@ void read_file(uint8_t* fname)
 	return;
 }
 
+
+
 int32_t send_file(uint8_t* fname)
 {
 	uint8_t acknowledge=0,package_counter=0;
@@ -94,7 +96,8 @@ int32_t send_file(uint8_t* fname)
 	{	
 		fptr = fopen(fname,"r");
 		while(eof_check != EOF_NEW)
-		{		
+		{	
+			bzero(data, PACKET_SIZE);
 			fgets(data,PACKET_SIZE,fptr);
 			eof_check=feof(fptr);
 			if(fptr!=NULL)
@@ -133,6 +136,7 @@ int32_t send_file(uint8_t* fname)
 	n = sendto(sockfd, EOF_message, PACKET_SIZE, 0, (struct sockaddr *) &partner_addr, partner_len);
 	return eof_check;
 }
+
 
 int32_t receive_file(uint8_t* fname)
 {
