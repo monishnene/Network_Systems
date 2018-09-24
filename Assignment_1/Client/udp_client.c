@@ -54,9 +54,6 @@ int32_t main(int32_t argc, uint8_t **argv)
     		n = sendto(sockfd, buf, strlen(buf), 0, &partner_addr, partner_len);
    		if (n < 0) 
       		error("ERROR in sendto");
-    		/*SOCKET TIMEOUT*/
-		//timer.tv_usec = TIMEOUT_SMALL;
-		//setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO,&timer,sizeof(timer));
 		switch(command)
 		{
 			case get:

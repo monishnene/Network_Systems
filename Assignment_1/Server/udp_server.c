@@ -73,6 +73,9 @@ int32_t main(int32_t argc, uint8_t **argv)
       			error("ERROR on inet_ntoa\n");
     		printf("server received datagram from %s (%s)\n", hostp->h_name, hostaddrp);
    		printf("server received %ld/%d bytes: %s\n", strlen(buf), n, buf);
+    		/*SOCKET TIMEOUT*/
+		timer.tv_usec = TIMEOUT_BIG;
+		setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO,&timer,sizeof(timer));
 		command = command_catch(buf);
 		switch(command)
 		{
