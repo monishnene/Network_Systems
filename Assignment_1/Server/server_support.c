@@ -85,10 +85,6 @@ int32_t send_file(uint8_t* fname)
 		{		
 			fgets(data,PACKET_SIZE,fptr);
 			eof_check=feof(fptr);
-			if(eof_check == EOF_NEW)
-			{
-				break;
-			}
 			if(fptr!=NULL)
 			{		
 				if(data!=NULL)
@@ -96,22 +92,22 @@ int32_t send_file(uint8_t* fname)
 					ack=0;
 					while(!ack)
 					{				
-						syslog(SYSLOG_PRIORITY,"package_counter=%ld",package_counter);
+						//syslog(SYSLOG_PRIORITY,"package_counter=%ld",package_counter);
 						tagged_data[0]=package_counter;
 						for(i=0;i<PACKET_SIZE;i++)
 						{
 							tagged_data[i+1]=data[i];
 						}
 						n = sendto(sockfd,tagged_data, PACKET_SIZE+ sizeof(package_counter), 0, (struct sockaddr *) &partner_addr, partner_len);
-						syslog(SYSLOG_PRIORITY,"%s",data);
+						//syslog(SYSLOG_PRIORITY,"%s",data);
 						n = recvfrom(sockfd, &acknowledge, sizeof(acknowledge), 0, (struct sockaddr *)&partner_addr, partner_len);
-						syslog(SYSLOG_PRIORITY,"acknowledge=%ld",acknowledge);
+						//syslog(SYSLOG_PRIORITY,"acknowledge=%ld",acknowledge);
 						if(acknowledge==package_counter)
 						{
-							ack=1;						
+							ack=1;				
+							package_counter++;					
 						}
-					}					
-					package_counter++;
+					}		
 				}
 			}
 		}
@@ -130,33 +126,34 @@ int32_t receive_file(uint8_t* fname)
 {
 	uint8_t acknowledge=0,package_counter=0;
 	int32_t error_check=0;
-	uint8_t condition=1,n=0,i=0;
+	uint8_t condition=1,n=0,i=0,file_exists=0;
 	uint8_t data[PACKET_SIZE];
 	uint8_t tagged_data[PACKET_SIZE+sizeof(acknowledge)];	
 	syslog(SYSLOG_PRIORITY,"receive file %s",fname);
 	FILE *fptr = fopen(fname,"w");
 	while(condition)
 	{
-		syslog(SYSLOG_PRIORITY,"package_counter=%ld",package_counter);	
+		//syslog(SYSLOG_PRIORITY,"package_counter=%ld",package_counter);	
 		n = recvfrom(sockfd, tagged_data, PACKET_SIZE+sizeof(acknowledge), 0, (struct sockaddr *) &partner_addr, partner_len);
 		acknowledge=tagged_data[0];
 		for(i=0;i<PACKET_SIZE;i++)
 		{
 			data[i]=tagged_data[i+1];
 		}
-		syslog(SYSLOG_PRIORITY,"acknowledge=%ld",acknowledge);		
+		//syslog(SYSLOG_PRIORITY,"acknowledge=%ld",acknowledge);		
 		if(!strcmp(data,EOF_message))
 		{
 			condition=0;
 			package_counter--;
 			n = sendto(sockfd,&acknowledge, sizeof(acknowledge), 0, (struct sockaddr *) &partner_addr, partner_len);	
 		}
-		else if((data!=NULL)&&(acknowledge==package_counter))
+		else if(acknowledge==package_counter)
 		{
 			error_check=fputs(data,fptr);
 			n = sendto(sockfd,&acknowledge, sizeof(acknowledge), 0, (struct sockaddr *) &partner_addr, partner_len);
-			syslog(SYSLOG_PRIORITY,"%s",data);
+			//syslog(SYSLOG_PRIORITY,"%s",data);
 			package_counter++;
+			file_exists=1;
 		}
 		else
 		{
@@ -164,7 +161,7 @@ int32_t receive_file(uint8_t* fname)
 		}
 	}
 	fclose(fptr);	
-	if(!package_counter)
+	if(!file_exists)
 	{
 		remove(fname);
 	}

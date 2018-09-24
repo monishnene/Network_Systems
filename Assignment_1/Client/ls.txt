@@ -1,6 +1,6 @@
-foo1
 foo2
 foo3
+foo4
 ls.txt
 makefile
 server_support.c
@@ -9,4 +9,5 @@ server_support.o
 test_stoc
 udp_server.c
 udp_server.elf
+udp_server.o
 udp_server.o
