@@ -6,7 +6,7 @@
 
 int32_t main(int32_t argc, uint8_t **argv) 
 {
-	uint8_t command=0;
+	uint8_t command=0,n;
 	int32_t error_check=11;
     	/* check command line arguments */
     	if (argc != 3) 
@@ -31,27 +31,32 @@ int32_t main(int32_t argc, uint8_t **argv)
 	}
 
     	/* build the server's Internet address */
-    	bzero((uint8_t *) &serveraddr, sizeof(serveraddr));
-    	serveraddr.sin_family = AF_INET;
+    	bzero((uint8_t *) &partner_addr, sizeof(partner_addr));
+    	partner_addr.sin_family = AF_INET;
     	bcopy((uint8_t *)server->h_addr, 
-	(uint8_t *)&serveraddr.sin_addr.s_addr, server->h_length);
-    	serveraddr.sin_port = htons(portno);
+	(uint8_t *)&partner_addr.sin_addr.s_addr, server->h_length);
+    	partner_addr.sin_port = htons(portno);
 	
     	/* get a message from the user */
     	bzero(buf, BUFSIZE);
 	
 	while(1)
 	{
+		/*SOCKET TIMEOUT*/
+		timer.tv_usec = TIMEOUT_BIG;
+		setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO,&timer,sizeof(timer));
 		bzero(buf, BUFSIZE);
    		printf("Please enter msg: ");
     		fgets(buf, BUFSIZE, stdin);
 		command = command_catch(buf);
 		/* send the message to the server */
-    		serverlen = sizeof(serveraddr);
-    		n = sendto(sockfd, buf, strlen(buf), 0, &serveraddr, serverlen);
+    		partner_len = sizeof(partner_addr);
+    		n = sendto(sockfd, buf, strlen(buf), 0, &partner_addr, partner_len);
    		if (n < 0) 
       		error("ERROR in sendto");
-    
+    		/*SOCKET TIMEOUT*/
+		//timer.tv_usec = TIMEOUT_SMALL;
+		//setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO,&timer,sizeof(timer));
 		switch(command)
 		{
 			case get:
@@ -96,7 +101,7 @@ int32_t main(int32_t argc, uint8_t **argv)
 		}
     		/* print the server's reply */
 		bzero(buf, BUFSIZE);
-    		n = recvfrom(sockfd, buf, BUFSIZE, 0, &serveraddr, &serverlen);
+    		n = receive_packet(buf);
     		if (n < 0) 
       			error("ERROR in recvfrom");
     		printf("Server: %s", buf);

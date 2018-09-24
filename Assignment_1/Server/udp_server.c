@@ -7,7 +7,7 @@
 
 int32_t main(int32_t argc, uint8_t **argv) 
 {
-	uint8_t condition=1,command=0;
+	uint8_t condition=1,command=0,n=0;
 	int32_t error_check=11;
   	/* 
    	* check command line arguments 
@@ -51,24 +51,24 @@ int32_t main(int32_t argc, uint8_t **argv)
   	/* 
    	* main loop: wait for a datagram, then echo it
    	*/
-  	clientlen = sizeof(clientaddr);
+  	partner_len = sizeof(partner_addr);
   	while (condition) 
 	{
     		/*
      		* recvfrom: receive a UDP datagram from a client
      		*/
     		bzero(buf, BUFSIZE);
-    		n = recvfrom(sockfd, buf, BUFSIZE, 0,(struct sockaddr *) &clientaddr, &clientlen);
+    		n = recvfrom(sockfd, buf, BUFSIZE, 0,(struct sockaddr *) &partner_addr, &partner_len);
     		if (n < 0)
       			error("ERROR in recvfrom");
 
     		/* 
      		* gethostbyaddr: determine who sent the datagram
      		*/
-    		hostp = gethostbyaddr((const uint8_t *)&clientaddr.sin_addr.s_addr, sizeof(clientaddr.sin_addr.s_addr), AF_INET);
+    		hostp = gethostbyaddr((const uint8_t *)&partner_addr.sin_addr.s_addr, sizeof(partner_addr.sin_addr.s_addr), AF_INET);
     		if (hostp == NULL)
       			error("ERROR on gethostbyaddr");
-    		hostaddrp = inet_ntoa(clientaddr.sin_addr);
+    		hostaddrp = inet_ntoa(partner_addr.sin_addr);
     		if (hostaddrp == NULL)
       			error("ERROR on inet_ntoa\n");
     		printf("server received datagram from %s (%s)\n", hostp->h_name, hostaddrp);

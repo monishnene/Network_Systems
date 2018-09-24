@@ -6,7 +6,6 @@ makefile
 server_support.c
 server_support.h
 server_support.o
-test_ctos
 test_stoc
 udp_server.c
 udp_server.elf
