@@ -1,35 +1,44 @@
-/* 
- * udpserver.c - A simple UDP echo server 
- * usage: udpserver <port>
- */
+/***********************************************************************
+ * udp_server.c
+ * Network Systems CSCI 5273 Programming Assignment 1
+ * Author: Monish Nene
+ * Date: 09/09/2018
+ * @brief This file has the main loop for the server
+ * Application file transfer using UDP protocol
+***********************************************************************/
 
 #include "server_support.h"
-
-int32_t main(int32_t argc, uint8_t **argv) 
+/***********************************************************************
+ * @brief main
+ * This funtion has the initialization and main loop with switch case for udp server
+ * @param argc
+ * @param argv portno
+***********************************************************************/
+int32_t main(int32_t argc, uint8_t **argv)
 {
 	uint8_t condition=1,command=0,n=0;
 	int32_t error_check=11;
-  	/* 
-   	* check command line arguments 
+  	/*
+   	* check command line arguments
    	*/
-  	if (argc != 2) 
+  	if (argc != 2)
 	{
     		fprintf(stderr, "usage: %s <port>\n", argv[0]);
     		exit(1);
   	}
   	portno = atoi(argv[1]);
 
-  	/* 
-   	* socket: create the parent socket 
+  	/*
+   	* socket: create the parent socket
    	*/
   	sockfd = socket(AF_INET, SOCK_DGRAM, 0);
-  	if (sockfd < 0) 
+  	if (sockfd < 0)
   		error("ERROR opening socket");
 
-  	/* setsockopt: Handy debugging trick that lets 
-  	* us rerun the server immediately after we kill it; 
-  	* otherwise we have to wait about 20 secs. 
-   	* Eliminates "ERROR on binding: Address already in use" error. 
+  	/* setsockopt: Handy debugging trick that lets
+  	* us rerun the server immediately after we kill it;
+  	* otherwise we have to wait about 20 secs.
+   	* Eliminates "ERROR on binding: Address already in use" error.
    	*/
   	optval = 1;
   	setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR,(const void *)&optval , sizeof(int));
@@ -42,17 +51,17 @@ int32_t main(int32_t argc, uint8_t **argv)
   	serveraddr.sin_addr.s_addr = htonl(INADDR_ANY);
   	serveraddr.sin_port = htons((unsigned short)portno);
 
-  	/* 
-   	* bind: associate the parent socket with a port 
+  	/*
+   	* bind: associate the parent socket with a port
    	*/
-  	if (bind(sockfd, (struct sockaddr *) &serveraddr, sizeof(serveraddr)) < 0) 
+  	if (bind(sockfd, (struct sockaddr *) &serveraddr, sizeof(serveraddr)) < 0)
 		error("ERROR on binding");
 
-  	/* 
+  	/*
    	* main loop: wait for a datagram, then echo it
    	*/
   	partner_len = sizeof(partner_addr);
-  	while (condition) 
+  	while (condition)
 	{
     		/*
      		* recvfrom: receive a UDP datagram from a client
@@ -62,7 +71,7 @@ int32_t main(int32_t argc, uint8_t **argv)
     		if (n < 0)
       			error("ERROR in recvfrom");
 
-    		/* 
+    		/*
      		* gethostbyaddr: determine who sent the datagram
      		*/
     		hostp = gethostbyaddr((const uint8_t *)&partner_addr.sin_addr.s_addr, sizeof(partner_addr.sin_addr.s_addr), AF_INET);
@@ -85,13 +94,13 @@ int32_t main(int32_t argc, uint8_t **argv)
 				error_check=send_file(filename);
 				syslog(SYSLOG_PRIORITY,"errorcheck=%d",error_check);
 				if(!error_check)
-				{				
+				{
 					send_to_client("File not found.\n");
 				}
 				else
-				{				
+				{
 					send_to_client("File sent.\n");
-				}				
+				}
 				break;
 			}
 			case put:
@@ -99,11 +108,11 @@ int32_t main(int32_t argc, uint8_t **argv)
 				syslog(SYSLOG_PRIORITY,"\nCommand Caught = %d put %s",command,filename);
 				error_check=receive_file(filename);
 				if(!error_check)
-				{				
+				{
 					send_to_client("File not received.\n");
 				}
 				else
-				{				
+				{
 					send_to_client("File received.\n");
 				}
 				break;
@@ -140,7 +149,7 @@ int32_t main(int32_t argc, uint8_t **argv)
 				break;
 			}
 		}
-    		if (n < 0) 
+    		if (n < 0)
      			error("ERROR in sendto");
   	}
 }

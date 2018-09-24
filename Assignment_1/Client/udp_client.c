@@ -1,15 +1,26 @@
-/* 
- * udpclient.c - A simple UDP client
- * usage: udpclient <host> <port>
- */
+/***********************************************************************
+ * udp_client.c
+ * Network Systems CSCI 5273 Programming Assignment 1
+ * Author: Monish Nene
+ * Date: 09/09/2018
+ * @brief This file has the main loop for the client
+ * Application file transfer using UDP protocol
+***********************************************************************/
 #include "client_support.h"
 
-int32_t main(int32_t argc, uint8_t **argv) 
+
+/***********************************************************************
+ * @brief main
+ * This funtion has the initialization and main loop with switch case for udp client
+ * @param argc
+ * @param argv localhost and portno
+***********************************************************************/
+int32_t main(int32_t argc, uint8_t **argv)
 {
 	uint8_t command=0,n;
 	int32_t error_check=11;
     	/* check command line arguments */
-    	if (argc != 3) 
+    	if (argc != 3)
 	{
        		fprintf(stderr,"usage: %s <hostname> <port>\n", argv[0]);
        		exit(0);
@@ -19,12 +30,12 @@ int32_t main(int32_t argc, uint8_t **argv)
 
     	/* socket: create the socket */
    	 sockfd = socket(AF_INET, SOCK_DGRAM, 0);
-    	if (sockfd < 0) 
+    	if (sockfd < 0)
         	error("ERROR opening socket");
 
     	/* gethostbyname: get the server's DNS entry */
     	server = gethostbyname(hostname);
-    	if (server == NULL) 
+    	if (server == NULL)
 	{
         	fprintf(stderr,"ERROR, no such host as %s\n", hostname);
         	exit(0);
@@ -33,13 +44,13 @@ int32_t main(int32_t argc, uint8_t **argv)
     	/* build the server's Internet address */
     	bzero((uint8_t *) &partner_addr, sizeof(partner_addr));
     	partner_addr.sin_family = AF_INET;
-    	bcopy((uint8_t *)server->h_addr, 
+    	bcopy((uint8_t *)server->h_addr,
 	(uint8_t *)&partner_addr.sin_addr.s_addr, server->h_length);
     	partner_addr.sin_port = htons(portno);
-	
+
     	/* get a message from the user */
     	bzero(buf, BUFSIZE);
-	
+
 	while(1)
 	{
 		/*SOCKET TIMEOUT*/
@@ -52,7 +63,7 @@ int32_t main(int32_t argc, uint8_t **argv)
 		/* send the message to the server */
     		partner_len = sizeof(partner_addr);
     		n = sendto(sockfd, buf, strlen(buf), 0, &partner_addr, partner_len);
-   		if (n < 0) 
+   		if (n < 0)
       		error("ERROR in sendto");
 		switch(command)
 		{
@@ -68,10 +79,10 @@ int32_t main(int32_t argc, uint8_t **argv)
 				error_check=send_file(filename);
 				syslog(SYSLOG_PRIORITY,"errorcheck=%d",error_check);
 				if(!error_check)
-				{				
+				{
 					syslog(SYSLOG_PRIORITY,"File %s is not found.",filename);
 					printf("File %s is not found.\n",filename);
-				}				
+				}
 				break;
 			}
 			case del:
@@ -99,7 +110,7 @@ int32_t main(int32_t argc, uint8_t **argv)
     		/* print the server's reply */
 		bzero(buf, BUFSIZE);
     		n = receive_packet(buf);
-    		if (n < 0) 
+    		if (n < 0)
       			error("ERROR in recvfrom");
     		printf("Server: %s", buf);
 	}
