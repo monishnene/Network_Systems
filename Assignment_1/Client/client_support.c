@@ -128,7 +128,7 @@ int32_t send_file(uint8_t* fname)
 		while(eof_check != EOF_NEW)
 		{
 			bzero(data, PACKET_SIZE);
-			fgets(data,PACKET_SIZE,fptr);
+			n=fread(data,1,PACKET_SIZE,fptr);
 			eof_check=feof(fptr);
 			if(fptr!=NULL)
 			{
@@ -200,7 +200,7 @@ int32_t receive_file(uint8_t* fname)
 		}
 		else if(acknowledge==package_counter)
 		{
-			error_check=fputs(data,fptr);
+			error_check=fwrite(data,1,PACKET_SIZE,fptr);
 			n = sendto(sockfd,&acknowledge, sizeof(acknowledge), 0, (struct sockaddr *) &partner_addr, partner_len);
 			//syslog(SYSLOG_PRIORITY,"%s",data);
 			package_counter++;

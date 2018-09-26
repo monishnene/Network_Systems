@@ -15,7 +15,7 @@
 		  	udp_server.c \
 			server_support.c \
 			server_support.h \
-			udp_server.elf 
+			udp_server.elf  
 
 	port_number = 6313
 
@@ -31,7 +31,7 @@
 	build \
 	upload \
 	go \
-	run \
+	run 
 
 build:	udp_server.elf	
 
