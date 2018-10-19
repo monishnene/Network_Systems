@@ -1,4 +1,4 @@
-	common_sources=	udp_server.c \
+	common_sources=	tcp_server.c \
 			server_support.c
 	
 	common_includes = server_support.h 
@@ -17,7 +17,7 @@
 			server_support.h \
 			udp_server.elf  
 
-	port_number = 6313
+	port_number = 8888
 
 	CC=gcc
 	flags =	$(common_flags)
@@ -33,7 +33,7 @@
 	go \
 	run 
 
-build:	udp_server.elf	
+build:	tcp_server.elf	
 
 %.elf:	$(objects)	$(deps)
 	$(CC)	$(flags)	-o	$@	$(objects)	
@@ -65,10 +65,10 @@ go:
 	ssh	mone9255@elra-01.cs.colorado.edu
 
 run:
-	./udp_server.elf	$(port_number)
+	./tcp_server.elf	$(port_number)
 
 local:
-	./udp_server.elf	$(port_number)
+	./tcp_server.elf	$(port_number)
 
 clean :
 	rm	-f	*.o	*.s	*.i	*.o	*.d	*.elf *.swp
