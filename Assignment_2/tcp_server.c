@@ -31,7 +31,7 @@ int main(int argc , char *argv[])
     //Prepare the sockaddr_in structure
     server.sin_family = AF_INET;
     server.sin_addr.s_addr = INADDR_ANY;
-    server.sin_port = htons( PORT );
+    server.sin_port = htons(atoi(argv[1]));
      
     //Bind
     if( bind(socket_desc,(struct sockaddr *)&server , sizeof(server)) < 0)
@@ -114,7 +114,7 @@ void *connection_handler(void *socket_desc)
         //Send the message back to client
 	printf("%s",client_message);
 	command = command_catch(client_message,buffer);
-	write(sock , buffer, buffer_filled);
+	write(sock,buffer,buffer_filled);
     }
      
     if(read_size == 0)

@@ -25,10 +25,24 @@ void error(uint8_t *msg)
 ***********************************************************************/
 uint8_t command_catch(uint8_t* input,uint8_t* buffer)
 {
-	uint8_t command_caught=0,i=0,n;
+	uint8_t command_caught=0,i=4,j=3,n;
+	uint8_t filepath[100];
+	bzero(filepath, 100);
 	if(!strncmp(input,get_str,strlen(get_str)))
 	{
-		send_file("index.html",buffer);
+		if(*(input+5)==32)
+		{
+			send_file("www/index.html",buffer);
+		}
+		else
+		{
+			strcpy(filepath,"www");
+			while(*(input+i)!=32)
+			{
+				filepath[j++]=*(input+i++);
+			}
+			send_file(filepath,buffer);
+		}	
 	}
 	else if(!strncmp(input,head_str,strlen(head_str)))
 	{
@@ -63,11 +77,18 @@ int32_t send_file(uint8_t* fname,uint8_t* buffer)
 	int32_t file_size=0,eof_check=0;
 	uint8_t n=0,ack=0,i=0;
 	uint8_t data[PACKET_SIZE];
+	uint8_t header[HEADER_SIZE];
+	uint8_t* file_type;
 	FILE *fptr;
 	if(!access(fname,F_OK))
 	{
 		//file_size
 		fptr = fopen(fname,"r");
+		fseek(fptr,0,SEEK_END); 
+		file_size=ftell(fptr);		
+		fseek(fptr,0,SEEK_SET);
+		file_type=html_str;
+		sprintf(header,"HTTP/1.1 200 Ok\r\n Content-Type:%s\r\nContent-Length:%d\r\n\r\n",file_type,file_size);		
 		memcpy(buffer,header,strlen(header));
 		buffer_filled+=strlen(header);
 		buffer+=strlen(header);
@@ -85,8 +106,9 @@ int32_t send_file(uint8_t* fname,uint8_t* buffer)
 	}
 	else
 	{
+		printf("%s file not found",fname);
 		//syslog(SYSLOG_PRIORITY,"The file %s not found",fname);
-		eof_check=0;
+		eof_check=send_file("www/index.html",buffer);
 	}
 	return eof_check;
 }
