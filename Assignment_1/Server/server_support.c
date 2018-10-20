@@ -163,10 +163,10 @@ int32_t send_file(uint8_t* fname)
 ***********************************************************************/
 int32_t receive_file(uint8_t* fname)
 {
-	uint8_t acknowledge=0,package_counter=0;
+	uint8_t acknowledge=0,package_counter=0,size_counter=0;
 	int32_t error_check=0;
 	uint8_t condition=1,n=0,i=0,file_exists=0;
-	uint8_t data[PACKET_SIZE];
+	uint8_t data[PACKET_SIZE],buffer[PACKET_SIZE];
 	uint8_t tagged_data[PACKET_SIZE+sizeof(acknowledge)];
 	syslog(SYSLOG_PRIORITY,"receive file %s",fname);
 	FILE *fptr = fopen(fname,"w");
@@ -189,7 +189,7 @@ int32_t receive_file(uint8_t* fname)
 		else if(acknowledge==package_counter)
 		{
 			//error_check=fputs(data,fptr);			
-			error_check=fwrite(data,1,PACKET_SIZE,fptr);
+			error_check=fwrite(buffer,1,PACKET_SIZE,fptr);
 			n = sendto(sockfd,&acknowledge, sizeof(acknowledge), 0, (struct sockaddr *) &partner_addr, partner_len);
 			//syslog(SYSLOG_PRIORITY,"%s",data);
 			package_counter++;
@@ -200,6 +200,11 @@ int32_t receive_file(uint8_t* fname)
 			condition=0;
 		}
 	}
+	while((size_counter<PACKET_SIZE)&&(*(buffer+size_counter)!=0))
+	{
+		size_counter++;
+	}
+	error_check=fwrite(buffer,1,size_counter,fptr);
 	fclose(fptr);
 	if(!file_exists)
 	{

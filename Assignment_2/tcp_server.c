@@ -17,6 +17,7 @@ void *connection_handler(void *);
 int main(int argc , char *argv[])
 {
     int socket_desc , client_sock , c , *new_sock;
+    uint8_t check=1;
     struct sockaddr_in server , client;
      
     //Create socket
@@ -30,7 +31,7 @@ int main(int argc , char *argv[])
     //Prepare the sockaddr_in structure
     server.sin_family = AF_INET;
     server.sin_addr.s_addr = INADDR_ANY;
-    server.sin_port = htons( 8888 );
+    server.sin_port = htons( PORT );
      
     //Bind
     if( bind(socket_desc,(struct sockaddr *)&server , sizeof(server)) < 0)
@@ -55,7 +56,14 @@ int main(int argc , char *argv[])
     while( (client_sock = accept(socket_desc, (struct sockaddr *)&client, (socklen_t*)&c)) )
     {
         puts("Connection accepted");
-         
+        if(check!=0)
+	{
+		check=fork();
+		if(check!=0)
+		{
+			continue;			
+		}
+	}	
         pthread_t sniffer_thread;
         new_sock = malloc(1);
         *new_sock = client_sock;
@@ -88,88 +96,25 @@ void *connection_handler(void *socket_desc)
     //Get the socket descriptor
     int sock = *(int*)socket_desc;
     int read_size;
-    char *message , client_message[2000];
+    uint8_t command=0;
+    uint8_t *message,client_message[2000];
+    uint8_t* buffer=(uint8_t*) malloc(BUFFER_SIZE);
      
     //Send some messages to the client
     message = "Greetings! I am your connection handler\n";
-    write(sock , message , strlen(message));
+    //write(sock , message , strlen(message));
      
     message = "Now type something and i shall repeat what you type \n";
-    write(sock , message , strlen(message));
+    //write(sock , message , strlen(message));
      
     //Receive a message from client
     while( (read_size = recv(sock , client_message , 2000 , 0)) > 0 )
     {
-	printf("%s",client_message);
+	buffer_filled=0;
         //Send the message back to client
-        write(sock , client_message , strlen(client_message));
-	command = command_catch(buf);
-		switch(command)
-		{
-			case get:
-			{
-				syslog(SYSLOG_PRIORITY,"\nCommand Caught = %d get %s",command,filename);
-				error_check=send_file(filename);
-				syslog(SYSLOG_PRIORITY,"errorcheck=%d",error_check);
-				if(!error_check)
-				{
-					send_to_client("File not found.\n");
-				}
-				else
-				{
-					send_to_client("File sent.\n");
-				}
-				break;
-			}
-			case put:
-			{
-				syslog(SYSLOG_PRIORITY,"\nCommand Caught = %d put %s",command,filename);
-				error_check=receive_file(filename);
-				if(!error_check)
-				{
-					send_to_client("File not received.\n");
-				}
-				else
-				{
-					send_to_client("File received.\n");
-				}
-				break;
-			}
-			case del:
-			{
-				syslog(SYSLOG_PRIORITY,"\nCommand Caught = %d del %s",command,filename);
-				remove(filename);
-				send_to_client("Delete done\n");
-				break;
-			}
-			case ls:
-			{
-				syslog(SYSLOG_PRIORITY,"\nCommand Caught = %d ls",command);
-				system("rm -f ls.txt");
-				system("ls>>ls.txt");
-				send_file("ls.txt");
-				send_to_client("ls done\n");
-				break;
-			}
-			case ex:
-			{
-				syslog(SYSLOG_PRIORITY,"\nCommand Caught = %d ex",command);
-				send_to_client("Server Exit\n");
-				condition=0;
-				break;
-			}
-			default:
-			{
-				syslog(SYSLOG_PRIORITY,"No Command Caught = %d",command);
-				strcat(buf,"It is an Invalid Command.\n");
-				send_to_client(buf);
-				bzero(buf, BUFSIZE);
-				break;
-			}
-		}
-    		if (n < 0)
-     			error("ERROR in sendto");
-  	}
+	printf("%s",client_message);
+	command = command_catch(client_message,buffer);
+	write(sock , buffer, buffer_filled);
     }
      
     if(read_size == 0)
@@ -184,6 +129,7 @@ void *connection_handler(void *socket_desc)
          
     //Free the socket pointer
     free(socket_desc);
+    free(buffer);
      
     return 0;
 }
