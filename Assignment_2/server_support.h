@@ -11,26 +11,29 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <syslog.h>
+#include <time.h>
 
 #define SYSLOG_PRIORITY 99
 #define PACKET_SIZE 32
 #define DATA_SIZE 100
 #define NEW_LINE 10
 #define EOF_NEW 1
-#define TIMEOUT_BIG 1000000
-#define TIMEOUT_SMALL 10
+#define TIMEOUT 10
 #define BUFFER_SIZE (1024*1024*8)
 #define PORT 8998
-#define HEADER_SIZE 200
+#define HEADER_SIZE 300
+#define True 1
+#define False 0
 
 typedef enum
 {
-	GET=1,
+	GET,
 	HEAD,
 	POST,
 }commands;
 
 uint32_t buffer_filled;
+static uint8_t alive=True;
 int32_t sockfd; /* socket */
 int32_t portno; /* port to listen on */
 uint32_t partner_len; /* byte size of client's address */
@@ -43,20 +46,32 @@ static uint8_t get_str[]="GET";
 static uint8_t head_str[]="HEAD";
 static uint8_t post_str[]="POST";
 static uint8_t test_str[]="\nWelcome to Monish Nene's Web Server";
-static uint8_t error500[]="HTTP/1.1 500 Internal Server Error";
-static uint8_t html_str[]="html";
-static uint8_t plain_str[]="plain";
-static uint8_t txt_str[]="txt";
-static uint8_t png_str[]="png";
-static uint8_t gif_str[]="gif";
-static uint8_t jpg_str[]="jpg";
-static uint8_t css_str[]="css";
-static uint8_t js_str[]="js";
-static uint8_t java_str[]="javascript";
+static uint8_t error500[]=
+"HTTP/1.1 500 Internal Server Error\r\n"
+"Content-Type: text/html; charset = UTF-8\r\n\r\n"
+"<!DOCTYPE html>\r\n"
+"<body><center><h1>ERROR 500: Internal Server Error</h1><br>\r\n";
+static uint8_t html_str0[]="html";
+static uint8_t html_str1[]="text/html";
+static uint8_t txt_str1[]="text/plain";
+static uint8_t txt_str0[]="txt";
+static uint8_t png_str0[]="png";
+static uint8_t gif_str0[]="gif";
+static uint8_t jpg_str0[]="jpg";
+static uint8_t css_str0[]="css";
+static uint8_t js_str0[]="js";
+static uint8_t alive_str[]="keep-alive";
+static uint8_t png_str1[]="image/png";
+static uint8_t gif_str1[]="image/gif";
+static uint8_t jpg_str1[]="image/jpg";
+static uint8_t css_str1[]="text/css";
+static uint8_t js_str1[]="application/javascript";
+static uint8_t blank_line[]="\r\n\r\n";
+commands method;
 struct timeval timer;
-
 uint8_t command_catch(uint8_t* input,uint8_t* buffer);
 void error(uint8_t *msg);
-int32_t send_file(uint8_t* fname,uint8_t* buffer);
-
+int32_t send_file(uint8_t* fname,uint8_t* buffer,uint8_t* postdata);
+uint8_t search_str(uint8_t* haystack,uint8_t* needle);
+uint8_t file_extension_check(uint8_t* fname, uint8_t* extension);
 #endif

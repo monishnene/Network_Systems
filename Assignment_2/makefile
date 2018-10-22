@@ -67,8 +67,9 @@ go:
 run:
 	./tcp_server.elf	$(port_number)
 
-local:
-	./tcp_server.elf	$(port_number)
+post:
+	$ (echo -en "POST /files/text1.txt HTTP/1.1\r\nHOST:localhost\r\nConnection:Keep-alive\r\n\r\nPOST_DATA_STRING") | nc 127.0.0.1 8854
+
 
 clean :
 	rm	-f	*.o	*.s	*.i	*.o	*.d	*.elf *.swp

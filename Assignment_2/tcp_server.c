@@ -53,7 +53,7 @@ int main(int argc , char *argv[])
     //Accept and incoming connection
     puts("Waiting for incoming connections...");
     c = sizeof(struct sockaddr_in);
-    while( (client_sock = accept(socket_desc, (struct sockaddr *)&client, (socklen_t*)&c)) )
+    while((client_sock = accept(socket_desc, (struct sockaddr *)&client, (socklen_t*)&c)) )
     {
         puts("Connection accepted");
         if(check!=0)
@@ -67,7 +67,8 @@ int main(int argc , char *argv[])
         pthread_t sniffer_thread;
         new_sock = malloc(1);
         *new_sock = client_sock;
-         
+	timer.tv_sec=TIMEOUT;
+        setsockopt(*new_sock,SOL_SOCKET,SO_RCVTIMEO, (const char*)&timer,sizeof timer);
         if( pthread_create( &sniffer_thread , NULL ,  connection_handler , (void*) new_sock) < 0)
         {
             perror("could not create thread");
@@ -95,41 +96,37 @@ void *connection_handler(void *socket_desc)
 {
     //Get the socket descriptor
     int sock = *(int*)socket_desc;
-    int read_size;
+    int read_size,n=0;
     uint8_t command=0;
     uint8_t *message,client_message[2000];
     uint8_t* buffer=(uint8_t*) malloc(BUFFER_SIZE);
-     
-    //Send some messages to the client
-    message = "Greetings! I am your connection handler\n";
-    //write(sock , message , strlen(message));
-     
-    message = "Now type something and i shall repeat what you type \n";
-    //write(sock , message , strlen(message));
-     
     //Receive a message from client
-    while( (read_size = recv(sock , client_message , 2000 , 0)) > 0 )
+    while(((read_size = recv(sock , client_message , 2000 , 0)) > 0))
     {
-	buffer_filled=0;
-        //Send the message back to client
-	printf("%s",client_message);
-	command = command_catch(client_message,buffer);
-	write(sock,buffer,buffer_filled);
-    }
-     
-    if(read_size == 0)
-    {
-        puts("Client disconnected");
-        fflush(stdout);
-    }
-    else if(read_size == -1)
-    {
-        perror("recv failed");
-    }
-         
+		buffer_filled=0;
+        	//Send the message back to client		
+		printf("%s",client_message);
+		command = command_catch(client_message,buffer);
+		//write(sock,"HTTP/1.1 500 Internal Server Error",36);	
+		if(command)
+		{
+			write(sock,buffer,buffer_filled);
+		}
+		else
+		{
+			n=send(sock,error500,strlen(error500),0);
+			shutdown(sock,SHUT_RDWR);
+    			close(sock); 
+			break;
+		}
+ 		bzero(client_message , 2000);		
+    }	
+    puts("\nClient disconnected\n");
+    fflush(stdout);
+    shutdown(sock,SHUT_RDWR);
+    close(sock); 
     //Free the socket pointer
     free(socket_desc);
     free(buffer);
-     
     return 0;
 }
