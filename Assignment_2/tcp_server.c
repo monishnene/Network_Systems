@@ -101,7 +101,7 @@ void *connection_handler(void *socket_desc)
     uint8_t *message,client_message[2000];
     uint8_t* buffer=(uint8_t*) malloc(BUFFER_SIZE);
     //Receive a message from client
-    while(((read_size = recv(sock , client_message , 2000 , 0)) > 0))
+    while((read_size = recv(sock , client_message , 2000 , 0)) > 0)
     {
 		buffer_filled=0;
         	//Send the message back to client		

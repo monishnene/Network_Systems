@@ -74,7 +74,7 @@ uint8_t command_catch(uint8_t* input,uint8_t* buffer)
 {
 	uint8_t command_caught=0,i=0,j=0,n=0;
 	uint8_t filepath[100];
-	bzero(filepath, 100);	
+	bzero(filepath, 100);
 	if(search_str(input,get_str))
 	{		
 		method=GET;

@@ -29,9 +29,7 @@
 .PHONY:	compile-all \
 	clean \
 	build \
-	upload \
-	go \
-	run 
+	upload 
 
 build:	tcp_server.elf	
 
@@ -61,15 +59,8 @@ compile-all:	$(objects)
 upload:
 	scp	$(upload_files)	mone9255@elra-01.cs.colorado.edu:~/
 
-go:
-	ssh	mone9255@elra-01.cs.colorado.edu
-
 run:
 	./tcp_server.elf	$(port_number)
-
-post:
-	$ (echo -en "POST /files/text1.txt HTTP/1.1\r\nHOST:localhost\r\nConnection:Keep-alive\r\n\r\nPOST_DATA_STRING") | nc 127.0.0.1 8854
-
 
 clean :
 	rm	-f	*.o	*.s	*.i	*.o	*.d	*.elf *.swp
