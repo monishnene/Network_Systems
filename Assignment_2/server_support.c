@@ -1,10 +1,10 @@
 /***********************************************************************
- * client_support.c
- * Network Systems CSCI 5273 Programming Assignment 1
+ * server_support.c
+ * Network Systems CSCI 5273 Programming Assignment 2
  * Author: Monish Nene
- * Date: 09/09/2018
+ * Date: 10/09/2018
  * @brief This file has supporting functions for the server
- * Application file transfer using UDP protocol
+ * Application file transfer using TCP protocol
 ***********************************************************************/
 #include "server_support.h"
 /**
@@ -21,7 +21,7 @@ void error(uint8_t *msg)
  * Search a needle string in another haystack string.
  * @param haystack string to be searched in
  * @param needle small string to be searched
- * @return 1 if ound 0 if not found
+ * @return 1 if found 0 if not found
 ***********************************************************************/
 uint8_t search_str(uint8_t* haystack,uint8_t* needle)
 {
@@ -51,14 +51,14 @@ uint8_t search_str(uint8_t* haystack,uint8_t* needle)
 				{
 					i=temp;
 					j=0;
-					break;				
+					break;
 				}
 			}
 		}
 		else
 		{
 				j=0;
-				match_counter=0;	
+				match_counter=0;
 		}
 	}
 	return False;
@@ -76,7 +76,7 @@ uint8_t command_catch(uint8_t* input,uint8_t* buffer)
 	uint8_t filepath[100];
 	bzero(filepath, 100);
 	if(search_str(input,get_str))
-	{		
+	{
 		method=GET;
 		j=3;
 		i=strlen(get_str)+1;
@@ -92,14 +92,14 @@ uint8_t command_catch(uint8_t* input,uint8_t* buffer)
 				filepath[j++]=*(input+i++);
 			}
 			command_caught=send_file(filepath,buffer,input);
-		}	
+		}
 	}
 	else if(search_str(input,post_str))
 	{
 		method=POST;
 		if(search_str(input,blank_line))
 		{
-			while(strncmp(input+n++,blank_line,strlen(blank_line)));		
+			while(strncmp(input+n++,blank_line,strlen(blank_line)));
 		}
 		n+=strlen(blank_line)-1;
 		printf("n=%d",n);
@@ -117,7 +117,7 @@ uint8_t command_catch(uint8_t* input,uint8_t* buffer)
 				filepath[j++]=*(input+i++);
 			}
 			command_caught=send_file(filepath,buffer,input+n);
-		}				
+		}
 	}
 	else if(!strncmp(input,head_str,strlen(head_str)))
 	{
@@ -135,13 +135,13 @@ uint8_t command_catch(uint8_t* input,uint8_t* buffer)
 /***********************************************************************
  * @brief file_extension_check()
  * This funtion is used to check file extension
- * @param fname filename of the file 
+ * @param fname filename of the file
  * @param extension to be checked
  * @return 0 if extension matched, 1 if not matched
 ***********************************************************************/
 uint8_t file_extension_check(uint8_t* fname, uint8_t* extension)
 {
-	return strncmp(fname+strlen(fname)-strlen(extension),extension,strlen(extension));	
+	return strncmp(fname+strlen(fname)-strlen(extension),extension,strlen(extension));
 }
 
 /***********************************************************************
@@ -163,8 +163,8 @@ int32_t send_file(uint8_t* fname,uint8_t* buffer,uint8_t* postdata)
 	{
 		//file_size
 		fptr = fopen(fname,"r");
-		fseek(fptr,0,SEEK_END); 
-		file_size=ftell(fptr);		
+		fseek(fptr,0,SEEK_END);
+		file_size=ftell(fptr);
 		fseek(fptr,0,SEEK_SET);
 		if(!file_extension_check(fname,txt_str0))
 		{
@@ -206,7 +206,7 @@ int32_t send_file(uint8_t* fname,uint8_t* buffer,uint8_t* postdata)
 		else if(method==POST)
 		{
 			sprintf(header,"HTTP/1.1 200 Ok\r\nContent-type:%s\r\nContent-size:%d\r\n\r\n<html><body><pre><h1>%s</h1></pre>\n\r",file_type,file_size,postdata);
-		}		
+		}
 		memcpy(buffer,header,strlen(header));
 		buffer_filled+=strlen(header);
 		buffer+=strlen(header);

@@ -6,7 +6,7 @@ server_support.c	server_support.h
 
 I have makefile in both folder which link these files during compilation.
 
-tcp_client.c has the main function.
+tcp_server.c has the main function.
 
 Use 'make' command in each folder to compile the code.
 

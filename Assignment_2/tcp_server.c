@@ -1,7 +1,11 @@
-/*
-    C socket server example, handles multiple clients using threads
-*/
- 
+/***********************************************************************
+ * tcp_server.c
+ * Network Systems CSCI 5273 Programming Assignment 2
+ * Author: Monish Nene
+ * Date: 10/09/2018
+ * @brief This file has main functions for the server
+ * Application file transfer using TCP protocol
+***********************************************************************/
 #include<stdio.h>
 #include<string.h>    //strlen
 #include<stdlib.h>    //strlen
@@ -10,16 +14,16 @@
 #include<unistd.h>    //write
 #include<pthread.h> //for threading , link with lpthread
 #include "server_support.h"
- 
+
 //the thread function
 void *connection_handler(void *);
- 
+
 int main(int argc , char *argv[])
 {
     int socket_desc , client_sock , c , *new_sock;
     uint8_t check=1;
     struct sockaddr_in server , client;
-     
+
     //Create socket
     socket_desc = socket(AF_INET , SOCK_STREAM , 0);
     if (socket_desc == -1)
@@ -27,12 +31,12 @@ int main(int argc , char *argv[])
         printf("Could not create socket");
     }
     puts("Socket created");
-     
+
     //Prepare the sockaddr_in structure
     server.sin_family = AF_INET;
     server.sin_addr.s_addr = INADDR_ANY;
     server.sin_port = htons(atoi(argv[1]));
-     
+
     //Bind
     if( bind(socket_desc,(struct sockaddr *)&server , sizeof(server)) < 0)
     {
@@ -41,15 +45,15 @@ int main(int argc , char *argv[])
         return 1;
     }
     puts("bind done");
-     
+
     //Listen
     listen(socket_desc , 3);
-     
+
     //Accept and incoming connection
     puts("Waiting for incoming connections...");
     c = sizeof(struct sockaddr_in);
-     
-     
+
+
     //Accept and incoming connection
     puts("Waiting for incoming connections...");
     c = sizeof(struct sockaddr_in);
@@ -61,9 +65,9 @@ int main(int argc , char *argv[])
 		check=fork();
 		if(check!=0)
 		{
-			continue;			
+			continue;
 		}
-	}	
+	}
         pthread_t sniffer_thread;
         new_sock = malloc(1);
         *new_sock = client_sock;
@@ -74,21 +78,21 @@ int main(int argc , char *argv[])
             perror("could not create thread");
             return 1;
         }
-         
+
         //Now join the thread , so that we dont terminate before the thread
         //pthread_join( sniffer_thread , NULL);
         puts("Handler assigned");
     }
-     
+
     if (client_sock < 0)
     {
         perror("accept failed");
         return 1;
     }
-     
+
     return 0;
 }
- 
+
 /*
  * This will handle connection for each client
  * */
@@ -104,10 +108,10 @@ void *connection_handler(void *socket_desc)
     while((read_size = recv(sock , client_message , 2000 , 0)) > 0)
     {
 		buffer_filled=0;
-        	//Send the message back to client		
+        	//Send the message back to client
 		printf("%s",client_message);
 		command = command_catch(client_message,buffer);
-		//write(sock,"HTTP/1.1 500 Internal Server Error",36);	
+		//write(sock,"HTTP/1.1 500 Internal Server Error",36);
 		if(command)
 		{
 			write(sock,buffer,buffer_filled);
@@ -116,15 +120,15 @@ void *connection_handler(void *socket_desc)
 		{
 			n=send(sock,error500,strlen(error500),0);
 			shutdown(sock,SHUT_RDWR);
-    			close(sock); 
+    			close(sock);
 			break;
 		}
- 		bzero(client_message , 2000);		
-    }	
+ 		bzero(client_message , 2000);
+    }
     puts("\nClient disconnected\n");
     fflush(stdout);
     shutdown(sock,SHUT_RDWR);
-    close(sock); 
+    close(sock);
     //Free the socket pointer
     free(socket_desc);
     free(buffer);
