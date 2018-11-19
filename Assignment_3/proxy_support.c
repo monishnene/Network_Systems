@@ -6,7 +6,7 @@
  * @brief This file has supporting functions for the server
  * Application file transfer using UDP protocol
 ***********************************************************************/
-#include "server_support.h"
+#include "proxy_support.h"
 /**
  * error - wrapper for perror
  */
@@ -70,67 +70,62 @@ uint8_t search_str(uint8_t* haystack,uint8_t* needle)
  * @param data pointer to the input string
  * @return command caught equivalent enum
 ***********************************************************************/
-uint8_t command_catch(uint8_t* input,uint8_t* buffer)
+uint8_t Domain_Name_Extract(uint8_t* input,uint8_t* domain_name)
 {
 	uint8_t command_caught=0,i=0,j=0,n=0;
-	uint8_t filepath[100];
-	bzero(filepath, 100);
 	if(search_str(input,get_str))
 	{		
 		method=GET;
-		j=3;
-		i=strlen(get_str)+1;
-		if(*(input+i+1)==32)
+		i=strlen(get_str)+strlen(http_str)+1;
+		while(*(input+i)!=32)
 		{
-			command_caught=send_file("www/index.html",buffer,input);
+			*(domain_name+j++)=*(input+i++);
 		}
-		else
+		n=strlen(domain_name);
+		if(*(domain_name+n-1)=='/')
 		{
-			strcpy(filepath,"www");
-			while(*(input+i)!=32)
-			{
-				filepath[j++]=*(input+i++);
-			}
-			command_caught=send_file(filepath,buffer,input);
-		}	
-	}
-	else if(search_str(input,post_str))
-	{
-		method=POST;
-		if(search_str(input,blank_line))
-		{
-			while(strncmp(input+n++,blank_line,strlen(blank_line)));		
+			*(domain_name+n-1)=0;	
 		}
-		n+=strlen(blank_line)-1;
-		printf("n=%d",n);
-		j=3;
-		i=strlen(post_str)+1;
-		if(*(input+i+1)==32)
-		{
-			command_caught=send_file("www/index.html",buffer,input+n);
-		}
-		else
-		{
-			strcpy(filepath,"www");
-			while(*(input+i)!=32)
-			{
-				filepath[j++]=*(input+i++);
-			}
-			command_caught=send_file(filepath,buffer,input+n);
-		}				
-	}
-	else if(!strncmp(input,head_str,strlen(head_str)))
-	{
-		/*command_caught=put;
-		input += strlen(put_str)+1;
-		while(*(input)!=NEW_LINE)
-		{
-			filename[i++]=*(input++);
-		}*/
+		command_caught=1;
+		#ifdef DEBUG	
+		printf("\nDomain Name = %s",domain_name);
+		#endif
 	}
 	return command_caught;
 }
 
+uint8_t Get_IP(uint8_t** ip_addr_list,uint8_t* domain_name)
+{
+	uint8_t ip_found=0,i=0,j=0,n=0;
+	struct hostent *host_ptr=gethostbyname(domain_name);
+	struct in_addr **temp_list;
+	if(host_ptr!=NULL)
+	{
+		ip_found=1;
+		temp_list= (struct in_addr **)host_ptr->h_addr_list;
+		#ifdef DEBUG
+		printf("\nReal Name->%s",host_ptr->h_name);
+		while(*(host_ptr->h_aliases+i)!=NULL)
+		{
+			printf("\nAlias = %s",*(host_ptr->h_addr_list+i++));
+		}
+		#endif
+		for(i=0;host_ptr->h_addr_list[i]!=NULL;i++)
+		{
+			#ifdef DEBUG
+			printf("\nIP=%s",inet_ntoa(*temp_list[i]));
+			#endif			
+			strcpy(ip_addr_list[i],inet_ntoa(*temp_list[i]));
+		}
+	}
+	#ifdef DEBUG	
+	if(ip_found)
+	{
+		printf("\nIp found");
+	}	
+	#endif
+	return ip_found;
+}
 
 /***********************************************************************
  * @brief file_extension_check()

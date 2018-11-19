@@ -12,7 +12,9 @@
 #include <arpa/inet.h>
 #include <syslog.h>
 #include <time.h>
+#include <netdb.h>
 
+#define DEBUG 1
 #define SYSLOG_PRIORITY 99
 #define PACKET_SIZE 32
 #define DATA_SIZE 100
@@ -20,6 +22,10 @@
 #define EOF_NEW 1
 #define TIMEOUT 10
 #define BUFFER_SIZE (1024*1024*8)
+#define CLIENT_MESSAGE_SIZE (2000)
+#define DOMAIN_NAME_SIZE (100)
+#define IP_ADDRESS_SIZE (16)
+#define MAX_IP_ADDRESSES (20)
 #define PORT 8998
 #define HEADER_SIZE 300
 #define True 1
@@ -43,8 +49,7 @@ struct hostent *hostp; /* client host info */
 uint8_t *hostaddrp; /* dotted decimal host addr string */
 int32_t optval; /* flag value for setsockopt */
 static uint8_t get_str[]="GET";
-static uint8_t head_str[]="HEAD";
-static uint8_t post_str[]="POST";
+static uint8_t http_str[]="http://";
 static uint8_t test_str[]="\nWelcome to Monish Nene's Web Server";
 static uint8_t error500[]=
 "HTTP/1.1 500 Internal Server Error\r\n"
@@ -69,9 +74,10 @@ static uint8_t js_str1[]="application/javascript";
 static uint8_t blank_line[]="\r\n\r\n";
 commands method;
 struct timeval timer;
-uint8_t command_catch(uint8_t* input,uint8_t* buffer);
+uint8_t Domain_Name_Extract(uint8_t* input,uint8_t* domain_name);
 void error(uint8_t *msg);
 int32_t send_file(uint8_t* fname,uint8_t* buffer,uint8_t* postdata);
 uint8_t search_str(uint8_t* haystack,uint8_t* needle);
 uint8_t file_extension_check(uint8_t* fname, uint8_t* extension);
+uint8_t Get_IP(uint8_t** ip_addr_list,uint8_t* domain_name);
 #endif

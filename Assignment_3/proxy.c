@@ -9,7 +9,7 @@
 #include<arpa/inet.h> //inet_addr
 #include<unistd.h>    //write
 #include<pthread.h> //for threading , link with lpthread
-#include "server_support.h"
+#include "proxy_support.h"
  
 //the thread function
 void *connection_handler(void *);
@@ -97,16 +97,37 @@ void *connection_handler(void *socket_desc)
     //Get the socket descriptor
     int sock = *(int*)socket_desc;
     int read_size,n=0;
-    uint8_t command=0;
-    uint8_t *message,client_message[2000];
+    uint8_t command=0,i=0,error_check=0;
+    uint8_t* message;
     uint8_t* buffer=(uint8_t*) malloc(BUFFER_SIZE);
+    uint8_t* client_message=(uint8_t*) malloc(CLIENT_MESSAGE_SIZE);	
+    uint8_t* domain_name=(uint8_t*) malloc(DOMAIN_NAME_SIZE);
+    uint8_t* ip_addr_list[MAX_IP_ADDRESSES];
+    for(i=0;i<MAX_IP_ADDRESSES;i++)
+    {	
+	ip_addr_list[i]=(uint8_t*)malloc(IP_ADDRESS_SIZE);
+	bzero(ip_addr_list[i], IP_ADDRESS_SIZE);
+    }
     //Receive a message from client
-    while((read_size = recv(sock , client_message , 2000 , 0)) > 0)
+    bzero(client_message, CLIENT_MESSAGE_SIZE);
+    bzero(domain_name, DOMAIN_NAME_SIZE);
+    while((read_size = recv(sock , client_message , CLIENT_MESSAGE_SIZE , 0)) > 0)
     {
 		buffer_filled=0;
         	//Send the message back to client		
 		printf("%s",client_message);
-		command = command_catch(client_message,buffer);
+		error_check = Domain_Name_Extract(client_message,domain_name);
+		error_check = Get_IP(ip_addr_list,domain_name);
+		#ifdef DEBUG		
+		for(i=0;ip_addr_list[i]!=NULL;i++)
+		{
+			if(*(ip_addr_list[i])!=0)
+			{
+				printf("\nIP=%s",ip_addr_list[i]);
+			}		
+		}
+		#endif
+		command=0;
 		//write(sock,"HTTP/1.1 500 Internal Server Error",36);	
 		if(command)
 		{
@@ -128,5 +149,7 @@ void *connection_handler(void *socket_desc)
     //Free the socket pointer
     free(socket_desc);
     free(buffer);
+    free(client_message);
+    free(domain_name);
     return 0;
 }
