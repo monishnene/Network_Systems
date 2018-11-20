@@ -19,9 +19,17 @@ int main(int argc , char *argv[])
     int socket_desc , client_sock , c , *new_sock;
     uint8_t check=1;
     struct sockaddr_in server , client;
-     	
+    if (argc != 3)
+    {
+        printf ("\nUsage: <portNo> <timeout>\n");
+        exit(1);
+    }
+    else
+    {
+                timeout = atoi(argv[2]);
+    }
     setsockopt(*new_sock,SOL_SOCKET,SO_RCVTIMEO | SO_REUSEADDR | SO_REUSEPORT, (const char*)&timer,sizeof timer);
-
+	
     //Create socket
     socket_desc = socket(AF_INET , SOCK_STREAM , 0);
     if (socket_desc == -1)

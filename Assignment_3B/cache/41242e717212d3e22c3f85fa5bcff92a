@@ -1,0 +1,17 @@
+1542739861
+HTTP/1.1 304 Not Modified
+Date: Tue, 20 Nov 2018 17:49:24 GMT
+Server: Apache
+ETag: "bc8-579eaf1551d1f"
+Expires: Tue, 04 Dec 2018 17:49:24 GMT
+Cache-Control: max-age=1209600
+Vary: Accept-Encoding
+Last-Modified: Mon, 05 Nov 2018 13:34:21 GMT
+Content-Encoding: gzip
+Content-Type: text/css
+X-Varnish: 836207062 829328603
+Age: 3743
+Via: 1.1 varnish-v4
+grace: normal(limited)
+Connection: keep-alive
+

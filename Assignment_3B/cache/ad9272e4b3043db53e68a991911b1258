@@ -1,0 +1,44 @@
+1542739861
+HTTP/1.1 301 Moved Permanently
+Date: Tue, 20 Nov 2018 17:49:24 GMT
+Server: Apache
+Content-Length: 377
+Content-Type: text/html; charset=iso-8859-1
+Location: http://scratchpads.eu/sites/scratchpads.eu/files/js/js_uwrfBOJCFVq42muTMjrq2bD-RUh8NNq_fZRTb6dsNb4.js
+X-Varnish: 831099328 828085245
+Age: 3743
+Via: 1.1 varnish-v4
+grace: normal(limited)
+Connection: keep-alive
+
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 2.0//EN">
+<html><head>
+<title>301 Moved Permanently</title>
+</head><body>
+<h1>Moved Permanently</h1>
+<p>The document has moved <a href="http://scratchpads.eu/sites/scratchpads.eu/files/js/js_uwrfBOJCFVq42muTMjrq2bD-RUh8NNq_fZRTb6dsNb4.js">here</a>.</p>
+<hr>
+<address>Apache Server at www.scratchpads.eu Port 80</address>
+</body></html>
+1542739861
+HTTP/1.1 301 Moved Permanently
+Date: Tue, 20 Nov 2018 17:49:24 GMT
+Server: Apache
+Content-Length: 377
+Content-Type: text/html; charset=iso-8859-1
+Location: http://scratchpads.eu/sites/scratchpads.eu/files/js/js_uwrfBOJCFVq42muTMjrq2bD-RUh8NNq_fZRTb6dsNb4.js
+X-Varnish: 831099328 828085245
+Age: 3743
+Via: 1.1 varnish-v4
+grace: normal(limited)
+Connection: keep-alive
+
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 2.0//EN">
+<html><head>
+<title>301 Moved Permanently</title>
+</head><body>
+<h1>Moved Permanently</h1>
+<p>The document has moved <a href="http://scratchpads.eu/sites/scratchpads.eu/files/js/js_uwrfBOJCFVq42muTMjrq2bD-RUh8NNq_fZRTb6dsNb4.js">here</a>.</p>
+<hr>
+<address>Apache Server at www.scratchpads.eu Port 80</address>
+</body></html>

@@ -30,13 +30,6 @@
 #define True 1
 #define False 0
 
-typedef enum
-{
-	GET,
-	HEAD,
-	POST,
-}commands;
-
 uint32_t buffer_filled;
 static uint8_t alive=True;
 int32_t sockfd; /* socket */
@@ -61,23 +54,6 @@ static uint8_t error400[]=
 "Content-Type: text/html; charset = UTF-8\r\n\r\n"
 "<!DOCTYPE html>\r\n"
 "<body><center><h1>ERROR 400: Bad Request Error</h1><br>\r\n";
-static uint8_t html_str0[]="html";
-static uint8_t html_str1[]="text/html";
-static uint8_t txt_str1[]="text/plain";
-static uint8_t txt_str0[]="txt";
-static uint8_t png_str0[]="png";
-static uint8_t gif_str0[]="gif";
-static uint8_t jpg_str0[]="jpg";
-static uint8_t css_str0[]="css";
-static uint8_t js_str0[]="js";
-static uint8_t alive_str[]="keep-alive";
-static uint8_t png_str1[]="image/png";
-static uint8_t gif_str1[]="image/gif";
-static uint8_t jpg_str1[]="image/jpg";
-static uint8_t css_str1[]="text/css";
-static uint8_t js_str1[]="application/javascript";
-static uint8_t blank_line[]="\r\n\r\n";
-commands method;
 struct timeval timer;
 uint8_t Domain_Name_Extract(uint8_t* input,uint8_t* domain_name);
 void error(uint8_t *msg);
