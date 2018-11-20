@@ -19,7 +19,9 @@ int main(int argc , char *argv[])
     int socket_desc , client_sock , c , *new_sock;
     uint8_t check=1;
     struct sockaddr_in server , client;
-     
+     	
+    setsockopt(*new_sock,SOL_SOCKET,SO_RCVTIMEO | SO_REUSEADDR | SO_REUSEPORT, (const char*)&timer,sizeof timer);
+
     //Create socket
     socket_desc = socket(AF_INET , SOCK_STREAM , 0);
     if (socket_desc == -1)
@@ -49,13 +51,12 @@ int main(int argc , char *argv[])
     puts("Waiting for incoming connections...");
     c = sizeof(struct sockaddr_in);
      
-     
     //Accept and incoming connection
     puts("Waiting for incoming connections...");
     c = sizeof(struct sockaddr_in);
     while((client_sock = accept(socket_desc, (struct sockaddr *)&client, (socklen_t*)&c)) )
     {
-        puts("Connection accepted");
+        //puts("Connection accepted");
         if(check!=0)
 	{
 		check=fork();
@@ -68,7 +69,6 @@ int main(int argc , char *argv[])
         new_sock = malloc(1);
         *new_sock = client_sock;
 	timer.tv_sec=TIMEOUT;
-        setsockopt(*new_sock,SOL_SOCKET,SO_RCVTIMEO, (const char*)&timer,sizeof timer);
         if( pthread_create( &sniffer_thread , NULL ,  connection_handler , (void*) new_sock) < 0)
         {
             perror("could not create thread");
@@ -77,12 +77,12 @@ int main(int argc , char *argv[])
          
         //Now join the thread , so that we dont terminate before the thread
         //pthread_join( sniffer_thread , NULL);
-        puts("Handler assigned");
+        //puts("Handler assigned");
     }
      
     if (client_sock < 0)
     {
-        perror("accept failed");
+        //perror("accept failed");
         return 1;
     }
      
@@ -95,57 +95,44 @@ int main(int argc , char *argv[])
 void *connection_handler(void *socket_desc)
 {
     //Get the socket descriptor
-    int sock = *(int*)socket_desc;
-    int read_size,n=0;
+    socket_browser = *(int*)socket_desc;
+    int read_size=0,n=0,buffer_filled=0;
     uint8_t command=0,i=0,error_check=0;
     uint8_t* message;
     uint8_t* buffer=(uint8_t*) malloc(BUFFER_SIZE);
     uint8_t* client_message=(uint8_t*) malloc(CLIENT_MESSAGE_SIZE);	
     uint8_t* domain_name=(uint8_t*) malloc(DOMAIN_NAME_SIZE);
-    uint8_t* ip_addr_list[MAX_IP_ADDRESSES];
-    for(i=0;i<MAX_IP_ADDRESSES;i++)
-    {	
-	ip_addr_list[i]=(uint8_t*)malloc(IP_ADDRESS_SIZE);
-	bzero(ip_addr_list[i], IP_ADDRESS_SIZE);
-    }
     //Receive a message from client
+    bzero(buffer, BUFFER_SIZE);
     bzero(client_message, CLIENT_MESSAGE_SIZE);
     bzero(domain_name, DOMAIN_NAME_SIZE);
-    while((read_size = recv(sock , client_message , CLIENT_MESSAGE_SIZE , 0)) > 0)
+    while((read_size = recv(socket_browser , client_message , CLIENT_MESSAGE_SIZE , 0)) > 0)
     {
 		buffer_filled=0;
         	//Send the message back to client		
 		printf("%s",client_message);
 		error_check = Domain_Name_Extract(client_message,domain_name);
-		error_check = Get_IP(ip_addr_list,domain_name);
-		#ifdef DEBUG		
-		for(i=0;ip_addr_list[i]!=NULL;i++)
+		buffer_filled = proxy_client(domain_name, client_message);
+		if(buffer_filled==-404)
 		{
-			if(*(ip_addr_list[i])!=0)
-			{
-				printf("\nIP=%s",ip_addr_list[i]);
-			}		
-		}
-		#endif
-		command=0;
-		//write(sock,"HTTP/1.1 500 Internal Server Error",36);	
-		if(command)
-		{
-			write(sock,buffer,buffer_filled);
+			n=send(socket_browser,error404,strlen(error404),0);
+			shutdown(socket_browser,SHUT_RDWR);
+    			close(socket_browser); 
+			break;
 		}
 		else
 		{
-			n=send(sock,error500,strlen(error500),0);
-			shutdown(sock,SHUT_RDWR);
-    			close(sock); 
+			n=send(socket_browser,error400,strlen(error400),0);
+			shutdown(socket_browser,SHUT_RDWR);
+    			close(socket_browser); 
 			break;
 		}
- 		bzero(client_message , 2000);		
+ 		bzero(client_message ,  CLIENT_MESSAGE_SIZE);		
     }	
-    puts("\nClient disconnected\n");
+    puts("\nProxy disconnected\n");
     fflush(stdout);
-    shutdown(sock,SHUT_RDWR);
-    close(sock); 
+    shutdown(socket_browser,SHUT_RDWR);
+    close(socket_browser); 
     //Free the socket pointer
     free(socket_desc);
     free(buffer);

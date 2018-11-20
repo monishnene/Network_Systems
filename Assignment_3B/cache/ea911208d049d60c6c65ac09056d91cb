@@ -1,0 +1,15 @@
+1542700738
+HTTP/1.1 304 Not Modified
+Date: Tue, 20 Nov 2018 08:02:39 GMT
+Server: Apache/2.2.22
+Connection: Keep-Alive
+Keep-Alive: timeout=5, max=100
+ETag: "7080ada-1514-4ef482453d440"
+
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 2.0//EN">
+<html><head>
+<title>301 Moved Permanently</title>
+</head><body>
+<h1>Moved Permanently</h1>
+<p>The document has moved <a href="http://www.cplusplus.com/">here</a>.</p>
+</body></html>

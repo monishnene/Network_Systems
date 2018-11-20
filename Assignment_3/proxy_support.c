@@ -7,13 +7,84 @@
  * Application file transfer using UDP protocol
 ***********************************************************************/
 #include "proxy_support.h"
-/**
- * error - wrapper for perror
- */
+
 void error(uint8_t *msg)
 {
 	perror(msg);
     	exit(0);
+}
+
+int proxy_client(uint8_t* domain_name, uint8_t* input)
+{
+	uint8_t ip_found=0,i=0,j=0,n=0,port=80,buffer[1024];
+	int sock=0,status=0;
+	struct sockaddr_in server;
+	struct hostent *host_ptr=gethostbyname(domain_name);
+	if(host_ptr!=NULL)
+	{
+		ip_found=1;
+		#ifdef DEBUG
+		printf("\nReal Name->%s",host_ptr->h_name);
+		while(*(host_ptr->h_aliases+i)!=NULL)
+		{
+			printf("\nAlias = %s",*(host_ptr->h_addr_list+i++));
+		}		
+		printf("\nIp found");
+		#endif
+	}
+	else
+	{
+		printf("\nIP not found");
+		status=-404;
+		return status;	
+	}
+	//create socket
+        sock = socket(AF_INET, SOCK_STREAM , 0);
+	if (sock == -1)
+	{
+		printf("\nProxy Client socket not created.");
+		return status;
+	}
+	printf("\nProxy Client socket created");
+	bcopy((uint8_t*)host_ptr->h_addr,(uint8_t*)&server.sin_addr.s_addr,host_ptr->h_length);
+	server.sin_family = AF_INET;
+	server.sin_port = htons(port);
+	if(connect(sock, (struct sockaddr *)&server , sizeof(server))<0)
+	{
+		perror("\nconnect failed. Error");
+		close(sock);	
+		return status;
+	}
+	printf("\nProxy Client Connected");
+	//status=send(sock,input, strlen(input) , 0);
+	status=write(sock,input, strlen(input));
+	if(status<0)
+	{
+		printf("\nSend failed");	
+		close(sock);		
+		return status;
+	}
+		
+	bzero(buffer, sizeof(buffer));
+        while((status = recv(sock, buffer, sizeof(buffer), 0)))
+	{
+	  printf("\nbuffer_filled=%d, buffer_len=%ld ",status,strlen(buffer));
+          send(socket_browser, buffer, status, 0);
+          bzero(buffer, sizeof(buffer));
+        }
+	if(status < 0)
+	{
+		printf("\nReceive failed");	
+		close(sock);	
+		return status;
+	}
+	else
+	{
+		printf("\n%d bytes data received from the web server",status);
+	}
+	status=1;
+	//close(sock);
+	return status;
 }
 
 /***********************************************************************
@@ -77,7 +148,7 @@ uint8_t Domain_Name_Extract(uint8_t* input,uint8_t* domain_name)
 	{		
 		method=GET;
 		i=strlen(get_str)+strlen(http_str)+1;
-		while(*(input+i)!=32)
+		while((*(input+i)!=32)&&(*(input+i)!='/'))
 		{
 			*(domain_name+j++)=*(input+i++);
 		}
@@ -94,136 +165,5 @@ uint8_t Domain_Name_Extract(uint8_t* input,uint8_t* domain_name)
 	return command_caught;
 }
 
-uint8_t Get_IP(uint8_t** ip_addr_list,uint8_t* domain_name)
-{
-	uint8_t ip_found=0,i=0,j=0,n=0;
-	struct hostent *host_ptr=gethostbyname(domain_name);
-	struct in_addr **temp_list;
-	if(host_ptr!=NULL)
-	{
-		ip_found=1;
-		temp_list= (struct in_addr **)host_ptr->h_addr_list;
-		#ifdef DEBUG
-		printf("\nReal Name->%s",host_ptr->h_name);
-		while(*(host_ptr->h_aliases+i)!=NULL)
-		{
-			printf("\nAlias = %s",*(host_ptr->h_addr_list+i++));
-		}
-		#endif
-		for(i=0;host_ptr->h_addr_list[i]!=NULL;i++)
-		{
-			#ifdef DEBUG
-			printf("\nIP=%s",inet_ntoa(*temp_list[i]));
-			#endif			
-			strcpy(ip_addr_list[i],inet_ntoa(*temp_list[i]));
-		}
-	}
-	#ifdef DEBUG	
-	if(ip_found)
-	{
-		printf("\nIp found");
-	}	
-	#endif
-	return ip_found;
-}
 
-/***********************************************************************
- * @brief file_extension_check()
- * This funtion is used to check file extension
- * @param fname filename of the file 
- * @param extension to be checked
- * @return 0 if extension matched, 1 if not matched
-***********************************************************************/
-uint8_t file_extension_check(uint8_t* fname, uint8_t* extension)
-{
-	return strncmp(fname+strlen(fname)-strlen(extension),extension,strlen(extension));	
-}
-
-/***********************************************************************
- * @brief send_file()
- * This funtion is used to send a file to client via udp protocol
- * @param fname filename of the file to be sent
- * @return eof_check whether file exist or not
-***********************************************************************/
-int32_t send_file(uint8_t* fname,uint8_t* buffer,uint8_t* postdata)
-{
-	uint8_t acknowledge=0,package_counter=0;
-	int32_t file_size=0,eof_check=0;
-	uint8_t n=0,ack=0,i=0;
-	uint8_t data[PACKET_SIZE];
-	uint8_t header[HEADER_SIZE];
-	uint8_t* file_type;
-	FILE *fptr;
-	if(!access(fname,F_OK))
-	{
-		//file_size
-		fptr = fopen(fname,"r");
-		fseek(fptr,0,SEEK_END); 
-		file_size=ftell(fptr);		
-		fseek(fptr,0,SEEK_SET);
-		if(!file_extension_check(fname,txt_str0))
-		{
-			file_type=txt_str1;
-		}
-		else if(!file_extension_check(fname,png_str0))
-		{
-			file_type=png_str1;
-		}
-		else if(!file_extension_check(fname,jpg_str0))
-		{
-			file_type=jpg_str1;
-		}
-		else if(!file_extension_check(fname,gif_str0))
-		{
-			file_type=gif_str1;
-		}
-		else if(!file_extension_check(fname,css_str0))
-		{
-			file_type=css_str1;
-		}
-		else if(!file_extension_check(fname,js_str0))
-		{
-			file_type=js_str1;
-		}
-		else if(!file_extension_check(fname,html_str0))
-		{
-			file_type=html_str1;
-		}
-		else
-		{
-			eof_check=0;
-			return eof_check;
-		}
-		if(method==GET)
-		{
-			sprintf(header,"HTTP/1.1 200 OK\r\n Content-Type:%s\r\nContent-Length:%d\r\n\r\n",file_type,file_size);
-		}
-		else if(method==POST)
-		{
-			sprintf(header,"HTTP/1.1 200 Ok\r\nContent-type:%s\r\nContent-size:%d\r\n\r\n<html><body><pre><h1>%s</h1></pre>\n\r",file_type,file_size,postdata);
-		}		
-		memcpy(buffer,header,strlen(header));
-		buffer_filled+=strlen(header);
-		buffer+=strlen(header);
-		while(eof_check != EOF_NEW)
-		{
-			bzero(data, PACKET_SIZE);
-			//fgets(data,PACKET_SIZE,fptr);
-			n=fread(data,1,PACKET_SIZE,fptr);
-			memcpy(buffer,data,PACKET_SIZE);
-			buffer+=PACKET_SIZE;
-			buffer_filled+=PACKET_SIZE;
-			eof_check=feof(fptr);
-		}
-		eof_check=1;
-		fclose(fptr);
-	}
-	else
-	{
-		eof_check=0;
-		//send_file("error500.txt",buffer);
-		//syslog(SYSLOG_PRIORITY,"The file %s not found",fname);
-	}
-	return eof_check;
-}
 
