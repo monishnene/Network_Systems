@@ -106,8 +106,9 @@ int32_t checkCacheHost(int8_t *hostname, int8_t *ip)
 
 
 /***** Function to check for the requested URL in forbidden websites link *****/
-int32_t checkForbiddenHost(int8_t  *hostname)
+int32_t checkForbiddenHost(int8_t  *hostname,void *socket_desc)
 {
+    int32_t newsockfd = *(int32_t*)socket_desc,nbytes;
     FILE * fptr;
     int8_t * line=NULL;
     int8_t * temp=hostname;
@@ -129,10 +130,17 @@ int32_t checkForbiddenHost(int8_t  *hostname)
          }
          fclose(fptr);
     }
+    if(found)
+    {	
+    	printf("Forbidden webpage->%s\n", hostname);
+    	nbytes = send(newsockfd, error403,strlen(error403), 0 );
+    	shutdown(newsockfd,SHUT_RDWR);
+    	close(newsockfd);
+    }
     return found;
 }
 
-int32_t check_valid_input(int8_t* buffer,int8_t* url,int8_t* ip,void* socket_desc)
+int32_t check_valid_input(int8_t* buffer,int8_t* url,void *socket_desc)
 {
     	int32_t newsockfd = *(int32_t*)socket_desc,nbytes;
 	int8_t* method=(int8_t*)malloc(DATA_SIZE);
@@ -162,26 +170,6 @@ int32_t check_valid_input(int8_t* buffer,int8_t* url,int8_t* ip,void* socket_des
 	    close(newsockfd);
 	    return -400;
         }
-        /*else if
-        {
-            sscanf(url, "%*[^/]%*c%*c%[^/]", hostname);
-            printf("Hostname: %s\n", hostname );
-            if(checkForbiddenHost(hostname))
-            {
-                printf("Forbidden webpage->%s\n", hostname);
-                nbytes = send(newsockfd, error403,strlen(error403), 0 );
-		shutdown(newsockfd,SHUT_RDWR);
-		close(newsockfd);
-		
-            }
-	if(server_hp < 0)
-                        {
-                            bzero(buffer, sizeof(buffer));
-                            sprintf(buffer, error404,strlen(error404));
-                            printf("Error Buffer\n%s\n", buffer);
-                            nbytes = send(newsockfd, buffer, strlen(buffer), 0 );
-            
-                        }*/
 	return 0;
 }
 

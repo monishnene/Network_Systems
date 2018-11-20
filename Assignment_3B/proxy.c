@@ -110,8 +110,8 @@ void *connection_handler(void *socket_desc)
     while((nbytes = recv(newsockfd, buffer, sizeof(buffer), 0)))
     {
         strncpy(req_buffer, buffer, nbytes);
-        bzero(url,DOMAIN_NAME_SIZE );
-	error_check=check_valid_input(buffer,url,ip,socket_desc);
+        bzero(url, sizeof(DOMAIN_NAME_SIZE));
+	error_check=check_valid_input(buffer,url,socket_desc);
 	if(error_check<0)
 	{
 		continue;	
@@ -119,12 +119,8 @@ void *connection_handler(void *socket_desc)
         url_hash = MD5sum(url); //Calling MD5sum function to get hash value to create filename
             sscanf(url, "%*[^/]%*c%*c%[^/]", hostname);
             printf("Hostname: %s\n", hostname );
-            if(checkForbiddenHost(hostname))
+            if(checkForbiddenHost(hostname,socket_desc))
             {
-                printf("Forbidden webpage->%s\n", hostname);
-                nbytes = send(newsockfd, error403,strlen(error403), 0 );
-		shutdown(newsockfd,SHUT_RDWR);
-		close(newsockfd);
 		continue;
             }
             //Function call to check whether file is present in the cache
