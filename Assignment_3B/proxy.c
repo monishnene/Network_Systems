@@ -91,22 +91,15 @@ int main(int argc , char *argv[])
 /***** Response Function for Client Requests *****/
 void *connection_handler(void *socket_desc)
 {
-    int32_t newsockfd = *(int32_t*)socket_desc;
-    int8_t filename[BUFFER_SIZE];
-    int32_t sockfd1;
-    int8_t method[BUFFER_SIZE];
-    int8_t url[BUFFER_SIZE];
-    int8_t version[BUFFER_SIZE];
-    int8_t ip[128] = "";
-    int8_t forbid_ip[128] = "";
-    int8_t port[32] = "80";
-    int8_t hostname[BUFFER_SIZE];
-    struct hostent *server_hp;							// to represent entry in host database
+    int32_t newsockfd = *(int32_t*)socket_desc,sockfd1;
+    int8_t filename[BUFFER_SIZE],url[DOMAIN_NAME_SIZE],ip[IP_ADDRESS_SIZE],hostname[DOMAIN_NAME_SIZE];
+    struct hostent *server_hp;							
     FILE *fp;
     struct sockaddr_in server;
-    int32_t nbytes;
+    int32_t nbytes=0,error_check=0;
     int8_t buffer[BUFFER_SIZE];
     int8_t req_buffer[BUFFER_SIZE];
+    int8_t port[DATA_SIZE] = "80"; 
     int8_t *url_hash;
     int8_t* line=NULL;
     size_t length;
@@ -116,49 +109,21 @@ void *connection_handler(void *socket_desc)
     bzero(req_buffer, sizeof(req_buffer));
     while((nbytes = recv(newsockfd, buffer, sizeof(buffer), 0)))
     {
-        //printf("Request Buffer:\n%s\n", buffer);
         strncpy(req_buffer, buffer, nbytes);
-        bzero(method, sizeof(method));
-        bzero(url, sizeof(method));
-        bzero(version, sizeof(version));
-        sscanf(buffer, "%s %s %s", method, url, version);
-        printf("Method: %s \tURL: %s \tVersion:%s\n", method, url, version );
+        bzero(url,DOMAIN_NAME_SIZE );
+	error_check=check_valid_input(buffer,url,ip,socket_desc);
+	if(error_check<0)
+	{
+		continue;	
+	}
         url_hash = MD5sum(url); //Calling MD5sum function to get hash value to create filename
-        //Check for GET request
-        if(strcmp(method, "GET") != 0)
-        {
-            bzero(buffer, sizeof(buffer));
-            sprintf(buffer, error400,strlen(error400));
-            printf("Error Buffer\n%s\n", buffer);
-            nbytes = send(newsockfd, buffer, strlen(buffer), 0 );
-            continue;
-        }
-        //Check for HTTP request
-        else if((strstr(url, "https") != NULL) || (strstr(url, "http") == NULL))
-        {
-            bzero(buffer, sizeof(buffer));
-            sprintf(buffer, error400,strlen(error400));
-            printf("Error Buffer\n%s\n", buffer);
-            nbytes = send(newsockfd, buffer, strlen(buffer), 0 );
-            continue;
-        }
-        //Check for Valid HTTP Version
-        else if((strcmp(version, "HTTP/1.0") != 0) && (strcmp(version, "HTTP/1.1") != 0))
-        {
-            bzero(buffer, sizeof(buffer));
-            sprintf(buffer, error400,strlen(error400));
-            printf("Error Buffer\n%s\n", buffer);
-            nbytes = send(newsockfd, buffer, strlen(buffer), 0 );
-            continue;
-        }
-        else
-        {
             sscanf(url, "%*[^/]%*c%*c%[^/]", hostname);
             printf("Hostname: %s\n", hostname );
             if(checkForbiddenHost(hostname))
             {
                 printf("Forbidden webpage->%s\n", hostname);
                 nbytes = send(newsockfd, error403,strlen(error403), 0 );
+		shutdown(newsockfd,SHUT_RDWR);
 		close(newsockfd);
 		continue;
             }
@@ -282,10 +247,11 @@ void *connection_handler(void *socket_desc)
                     bzero(buffer, sizeof(buffer));
 		    if(nbytes==0)
 		    {
-			close(newsockfd);
-			exit(0);
+			break;
 		    }	
                 }
+		shutdown(newsockfd,SHUT_RDWR);
+		close(newsockfd);
                 fclose(fp);
 		//Fork if Prefetch Link Found
                 if(flag==1)
@@ -299,5 +265,4 @@ void *connection_handler(void *socket_desc)
                 }
             }
         }
-    }
 }

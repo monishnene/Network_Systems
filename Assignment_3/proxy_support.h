@@ -17,7 +17,7 @@
 #define DEBUG
 #define SYSLOG_PRIORITY 99
 #define PACKET_SIZE 32
-#define DATA_SIZE 100
+#define DATA_SIZE 10
 #define NEW_LINE 10
 #define EOF_NEW 1
 #define TIMEOUT 10
@@ -25,10 +25,16 @@
 #define CLIENT_MESSAGE_SIZE (2000)
 #define DOMAIN_NAME_SIZE (100)
 #define IP_ADDRESS_SIZE (32)
-#define PORT 8998
+#define PORT 80
 #define HEADER_SIZE 300
 #define True 1
 #define False 0
+
+typedef struct
+{
+
+
+};
 
 uint32_t buffer_filled;
 static uint8_t alive=True;
@@ -42,7 +48,6 @@ struct hostent *hostp; /* client host info */
 uint8_t *hostaddrp; /* dotted decimal host addr string */
 int32_t optval; /* flag value for setsockopt */
 static uint8_t get_str[]="GET";
-static uint8_t http_str[]="http://";
 static uint8_t test_str[]="\nWelcome to Monish Nene's Web Server";
 static uint8_t error404[]=
 "HTTP/1.1 HTTP 404 Not Found Error\r\n"

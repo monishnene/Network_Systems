@@ -132,6 +132,60 @@ int32_t checkForbiddenHost(int8_t  *hostname)
     return found;
 }
 
+int32_t check_valid_input(int8_t* buffer,int8_t* url,int8_t* ip,void* socket_desc)
+{
+    	int32_t newsockfd = *(int32_t*)socket_desc,nbytes;
+	int8_t* method=(int8_t*)malloc(DATA_SIZE);
+	int8_t* version=(int8_t*)malloc(DATA_SIZE);
+	sscanf(buffer, "%s %s %s", method, url, version);
+        if(strcmp(method, get_str) != 0)
+        {
+            printf("\nUnsupported Method %s",method);
+            nbytes = send(newsockfd,  error400,strlen(error400), 0 );
+            shutdown(newsockfd,SHUT_RDWR);
+	    close(newsockfd);
+	    return -400;
+        }
+        else if((strstr(url,https_str) != NULL) || (strstr(url,http_str) == NULL))
+        {
+            printf("\nUnsupported URL %s",url);
+            nbytes = send(newsockfd,  error400,strlen(error400), 0 );
+            shutdown(newsockfd,SHUT_RDWR);
+	    close(newsockfd);
+	    return -400;
+        }
+        else if((strcmp(version, v0) != 0) && (strcmp(version, v1) != 0))
+        {
+            printf("\nUnsupported Version %s",version);
+            nbytes = send(newsockfd,  error400,strlen(error400), 0 );
+            shutdown(newsockfd,SHUT_RDWR);
+	    close(newsockfd);
+	    return -400;
+        }
+        /*else if
+        {
+            sscanf(url, "%*[^/]%*c%*c%[^/]", hostname);
+            printf("Hostname: %s\n", hostname );
+            if(checkForbiddenHost(hostname))
+            {
+                printf("Forbidden webpage->%s\n", hostname);
+                nbytes = send(newsockfd, error403,strlen(error403), 0 );
+		shutdown(newsockfd,SHUT_RDWR);
+		close(newsockfd);
+		
+            }
+	if(server_hp < 0)
+                        {
+                            bzero(buffer, sizeof(buffer));
+                            sprintf(buffer, error404,strlen(error404));
+                            printf("Error Buffer\n%s\n", buffer);
+                            nbytes = send(newsockfd, buffer, strlen(buffer), 0 );
+            
+                        }*/
+	return 0;
+}
+
+
 /***** Link Prefetching: Extra-Credits Part *****/
 int32_t linkPrefetch(int8_t * prefetch_ip, int8_t * filename, int8_t * hostname, int8_t * port )
 {

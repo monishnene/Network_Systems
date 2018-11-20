@@ -34,6 +34,11 @@
 #define True 1
 #define False 0
 
+static uint8_t get_str[]="GET";
+static uint8_t http_str[]="http://";
+static uint8_t https_str[]="https://";
+static uint8_t v0[]="HTTP/1.0";
+static uint8_t v1[]="HTTP/1.1";
 static uint8_t error404[]=
 "HTTP/1.1 HTTP 404 Not Found Error\r\n"
 "Content-Type: text/html; charset = UTF-8\r\n\r\n"
