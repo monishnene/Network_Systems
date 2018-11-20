@@ -6,7 +6,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <netdb.h>
-#include <sys/types.h> 
+#include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -40,10 +40,10 @@
 #define ERR_SERVERNOTFOUND "HTTP/1.1 400 Bad Request\n\rContent-Type: text/html\nContent-Length: %d\n\r\n<html><body><H1>Error 400 Bad Request: Server Not Found </H1></body></html>"
 #define ERR_BLOCKED "HTTP/1.1 403 Forbidden\n\rContent-Type: text/html\nContent-Length: %d\n\r\n<html><body>ERROR 403 Forbidden</body></html>"
 
-char* MD5sum(char *url);
-int checkCacheFile(char *url, unsigned long int timeout);
-int checkCacheHost(char *hostname, char *ip);
-int checkForbiddenHost(char *hostname, char *forbid_ip);
-int linkPrefetch(char* prefetch_ip, char* filename, char* hostname, char* port );
-void response(int newsockfd, unsigned long int timeout);
+int8_t* MD5sum(int8_t *url);
+int32_t checkCacheFile(int8_t *url, uint32_t timeout);
+int32_t checkCacheHost(int8_t *hostname, int8_t *ip);
+int32_t checkForbiddenHost(int8_t *hostname, int8_t *forbid_ip);
+int32_t linkPrefetch(int8_t* prefetch_ip, int8_t* filename, int8_t* hostname, int8_t* port );
+void response(int32_t newsockfd, uint32_t timeout);
 #endif
