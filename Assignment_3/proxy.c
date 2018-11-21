@@ -209,7 +209,7 @@ void *connection_handler(void *socket_ptr)
             sprintf(filename, "cache/%s", url_encoded);
             fptr = fopen(filename, "ab");
             real_time = time(NULL);
-            fptrrintf(fptr, "%lu\n", real_time);
+            fprintf(fptr, "%lu\n", real_time);
             bzero(buffer, sizeof(buffer));
             while(1)
             {
