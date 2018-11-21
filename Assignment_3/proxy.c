@@ -60,7 +60,6 @@ int main(int argc , char *argv[])
     c = sizeof(struct sockaddr_in);
     while((client_sock = accept(socket_desc, (struct sockaddr *)&client, (socklen_t*)&c)) )
     {
-        //puts("Connection accepted");
         if(check!=0)
 	{
 		check=fork();
@@ -81,26 +80,25 @@ int main(int argc , char *argv[])
 
     if (client_sock < 0)
     {
-        //perror("accept failed");
         return 1;
     }
 
     return 0;
 }
 
-/***** Response Function for Client Requests *****/
 void *connection_handler(void *socket_desc)
 {
     int32_t newsockfd = *(int32_t*)socket_desc,sockfd1;
     int8_t filename[BUFFER_SIZE],url[DOMAIN_NAME_SIZE],ip[IP_ADDRESS_SIZE],hostname[DOMAIN_NAME_SIZE];
     struct hostent *host_ptr;
     FILE *fp;
+    time_t current_time;
     struct sockaddr_in server;
     int32_t nbytes=0,error_check=0;
     int8_t buffer[BUFFER_SIZE];
     int8_t req_buffer[BUFFER_SIZE];
     int8_t port[DATA_SIZE] = "80";
-    int8_t *url_hash;
+    int8_t url_encoded[IP_ADDRESS_SIZE];
     int8_t* line=NULL;
     size_t length;
     int32_t flag = 0;
@@ -118,28 +116,19 @@ void *connection_handler(void *socket_desc)
 	    close(newsockfd);
 	    break;
 	}
-        url_hash = MD5sum(url); //Calling MD5sum function to get hash value to create filename
+        md5_encode(url,url_encoded); 
         sscanf(url, "%*[^/]%*c%*c%[^/]", hostname);
-        printf("Hostname: %s\n", hostname );
+        printf("\nHostname: %s", hostname );
         if(checkForbiddenHost(hostname,socket_desc))
         {
 		break;
         }
-	if(check_valid_ip(hostname,socket_desc)<0)
-	{
-		break;
-	}
-            //Function call to check whether file is present in the cache
-            int32_t cacheFilePresent = checkCacheFile(url);
-            if(cacheFilePresent == 1)
-            {
-                printf("\n*****Page found in Cache Socket:%d*****\n", newsockfd );
-                FILE *fp;
+	   if(checkCacheFile(url))
+	   {
                 bzero(filename, sizeof(filename));
-                sprintf(filename, "./cache/%s", url_hash);
+                sprintf(filename, "./cache/%s", url_encoded);
                 fp = fopen(filename, "r");
                 getline(&line, &length, fp);
-                //sending file to client if found in cache
                 bzero(buffer, sizeof(buffer));
                 while((nbytes = fread(buffer, 1, sizeof(buffer), fp)))
                 {
@@ -149,56 +138,37 @@ void *connection_handler(void *socket_desc)
                 fclose(fp);
     		shutdown(newsockfd,SHUT_RDWR);
     		close(newsockfd);
-                continue;
+                break;
             }
             else
             {
-                printf("\n*****Page Not found in Cache:%d*****\n", newsockfd);
-                //Check for a formatting possibility for hostname
-                if(strchr(hostname, ':'))
+                printf("\nNot found in Cache", newsockfd);
+		bzero(&server,sizeof(server));                          
+		if(strchr(hostname, ':'))
                 {
                     bzero(port, sizeof(port));
-                    sscanf(hostname, "%[^:]%*c%[^/]", ip, port);
-                    bzero(&server,sizeof(server));               //zero the struct
-                    server.sin_family = AF_INET;                 //address family
-                    server.sin_port = htons(atoi(port));      //sets port to network byte order
-                    server.sin_addr.s_addr = inet_addr(ip); //sets remote IP address
+                    sscanf(hostname, "%[^:]%*c%[^/]", ip, port);  
+                    server.sin_addr.s_addr = inet_addr(ip); 
                 }
                 else
                 {
-                    //Function call to check for Hostname in cache to save the DNS query
                     int32_t checkHostPresent = checkCacheHost(hostname, ip);
                     if(checkHostPresent==1)
                     {
-                        printf("\nFound in Cache");
-                        bzero(filename, sizeof(filename));
-                        sprintf(filename, "Hostnames_IP");
-                        //fp = fopen(filename, "ab");
-                        bzero(&server,sizeof(server));               //zero the struct
-                        server.sin_family = AF_INET;                 //address family
-                        server.sin_port = htons(atoi(port));      //sets port to network byte order
-                        server.sin_addr.s_addr = inet_addr(ip); //sets remote IP address
+                        printf("\nHostname found in Cache");  
+                        server.sin_addr.s_addr = inet_addr(ip); 
                     }
                     else
                     {
-                        printf("\nNot Found in Cache");
-                        bzero(&server,sizeof(server));               //zero the struct
-                        server.sin_family = AF_INET;                 //address family
-                        server.sin_port = htons(atoi(port));      //sets port to network byte order
-                        //server.sin_addr.s_addr = inet_addr(hostname); //sets remote IP address
-                        host_ptr = gethostbyname(hostname);					 // Return information about host in argv[1]
-                        bcopy((int8_t*)host_ptr->h_addr, (int8_t*)&server.sin_addr, host_ptr->h_length);
-                        //Check for Valid Server
-                        if(host_ptr < 0)
-                        {
-                            bzero(buffer, sizeof(buffer));
-                            sprintf(buffer, error404,strlen(error404));
-                            printf("Error Buffer\n%s\n", buffer);
-                            nbytes = send(newsockfd, buffer, strlen(buffer), 0 );
-                            continue;
-                        }
+                        printf("\nHostname Not Found in Cache");
+                        host_ptr = gethostbyname(hostname);
+                        if(check_valid_ip(hostname,socket_desc)<0)
+			{
+				break;
+			}
                         else
                         {
+                            bcopy((int8_t*)host_ptr->h_addr, (int8_t*)&server.sin_addr, host_ptr->h_length);
                             bzero(filename, sizeof(filename));
                             sprintf(filename, "Hostnames_IP");
                             fp = fopen(filename, "ab");
@@ -209,64 +179,41 @@ void *connection_handler(void *socket_desc)
                         }
                     }
                 }
-                /***** Creating the socket to fetch data from the remote server*****/
+                server.sin_family = AF_INET;                 
+                server.sin_port = htons(atoi(port));
                 if ((sockfd1 = socket(AF_INET, SOCK_STREAM, 0)) < 0)
                 {
-                    printf("Error creating socket at proxy \n");
+                    printf("\nError creating socket");
                     continue;
                 }
-                //Connecting to remote server
                 if((connect(sockfd1, (struct sockaddr *)&server, sizeof(server))) < 0)
                 {
-                    printf("Error in Connect to the server. \n");
+                    printf("\nError in connecting to socket");
                     continue;
                 }
-                //Sending Request to Remote Server
                 send(sockfd1, req_buffer, strlen(req_buffer), 0);
                 bzero(buffer, sizeof(buffer));
                 bzero(filename, sizeof(filename));
-                sprintf(filename, "cache/%s", url_hash);
+                sprintf(filename, "cache/%s", url_encoded);
                 fp = fopen(filename, "ab");
-                if(fp < 0)
-                {
-                    printf("Error Creating Cache file\n");
-                    exit(1);
-                }
-                time_t current_time1;
-                current_time1 = time(NULL); //Get Current time
-                fprintf(fp, "%lu\n", current_time1); //Appending Current Time to the Cached File
+                current_time = time(NULL); 
+                fprintf(fp, "%lu\n", current_time); 
                 bzero(buffer, sizeof(buffer));
                 while(1)
                 {
 		    nbytes = recv(sockfd1, buffer, sizeof(buffer), 0);
                     printf("\nbuffer_filled=%d, buffer_len=%ld ",nbytes,strlen(buffer));
-                    //Check for Links to be Prefetched
-                    if(strstr(buffer, "<html"))
-                    {
-                        flag = 1; //Flag-Set for a Prefetching Link Found
-                    }
-                    //Sending the data recieved for the request to the client
                     send(newsockfd, buffer, nbytes, 0);
                     fwrite(buffer, 1, nbytes, fp);
                     bzero(buffer, sizeof(buffer));
 		    if(nbytes==0)
 		    {
-                break;
+                	break;
 		    }
                 }
 		shutdown(newsockfd,SHUT_RDWR);
 		close(newsockfd);
                 fclose(fp);
-		//Fork if Prefetch Link Found
-                if(flag==1)
-                {
-                    pid2 = fork();
-                    if(pid2 == 0)
-                    {
-                        int32_t ret = linkPrefetch(inet_ntoa(server.sin_addr), filename, hostname, port );
-                        exit(0);
-                    }
-                }
             }
         }
 }

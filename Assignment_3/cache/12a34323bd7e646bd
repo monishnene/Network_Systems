@@ -1,0 +1,34 @@
+1542765770
+HTTP/1.1 304 Not Modified
+Date: Wed, 21 Nov 2018 01:52:57 GMT
+Server: Apache
+ETag: "43c-579eaf154619f"
+Expires: Wed, 05 Dec 2018 01:52:57 GMT
+Cache-Control: max-age=1209600
+Vary: Accept-Encoding
+Last-Modified: Mon, 05 Nov 2018 13:34:21 GMT
+Content-Encoding: gzip
+Content-Type: text/css
+X-Varnish: 893289163 889324080
+Age: 594
+Via: 1.1 varnish-v4
+grace: none
+Connection: keep-alive
+
+1542768755
+HTTP/1.1 304 Not Modified
+Date: Wed, 21 Nov 2018 01:52:57 GMT
+Server: Apache
+ETag: "43c-579eaf154619f"
+Expires: Wed, 05 Dec 2018 01:52:57 GMT
+Cache-Control: max-age=1209600
+Vary: Accept-Encoding
+Last-Modified: Mon, 05 Nov 2018 13:34:21 GMT
+Content-Encoding: gzip
+Content-Type: text/css
+X-Varnish: 906428428 889324080
+Age: 3578
+Via: 1.1 varnish-v4
+grace: none
+Connection: keep-alive
+

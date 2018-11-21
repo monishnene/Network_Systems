@@ -63,5 +63,5 @@ int32_t checkCacheHost(int8_t *hostname, int8_t *ip);
 int32_t checkForbiddenHost(int8_t  *hostname,void *socket_desc);
 int32_t check_valid_input(int8_t* buffer,int8_t* url);
 int32_t check_valid_ip(int8_t *hostname,void *socket_desc);
-int32_t linkPrefetch(int8_t* prefetch_ip, int8_t* filename, int8_t* hostname, int8_t* port );
+void md5_encode(int8_t *url,int8_t* url_encoded);
 #endif

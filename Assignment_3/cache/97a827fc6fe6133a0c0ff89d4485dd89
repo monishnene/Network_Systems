@@ -1,8 +1,0 @@
-1542759316
-HTTP/1.1 304 Not Modified
-Date: Wed, 21 Nov 2018 00:18:59 GMT
-Server: Apache/2.2.22
-Connection: Keep-Alive
-Keep-Alive: timeout=5, max=100
-ETag: "7080ac5-8c6-4ef4823d9c240"
-

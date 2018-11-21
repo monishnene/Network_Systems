@@ -1,0 +1,30 @@
+1542765786
+HTTP/1.1 304 Not Modified
+Date: Wed, 21 Nov 2018 01:34:48 GMT
+Server: Apache
+ETag: "c6-54557dbfa30d6"
+Expires: Wed, 05 Dec 2018 01:34:48 GMT
+Cache-Control: max-age=1209600
+Last-Modified: Thu, 05 Jan 2017 12:15:38 GMT
+Content-Type: image/vnd.microsoft.icon
+X-Varnish: 887718461 879199745
+Age: 1698
+Via: 1.1 varnish-v4
+grace: none
+Connection: keep-alive
+
+1542768770
+HTTP/1.1 304 Not Modified
+Date: Wed, 21 Nov 2018 02:38:01 GMT
+Server: Apache
+ETag: "c6-54557dbfa30d6"
+Expires: Wed, 05 Dec 2018 02:38:01 GMT
+Cache-Control: max-age=1209600
+Last-Modified: Thu, 05 Jan 2017 12:15:38 GMT
+Content-Type: image/vnd.microsoft.icon
+X-Varnish: 903446601 900072079
+Age: 889
+Via: 1.1 varnish-v4
+grace: none
+Connection: keep-alive
+
