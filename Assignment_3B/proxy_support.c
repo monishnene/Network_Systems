@@ -28,9 +28,11 @@ int8_t* MD5sum(int8_t *url)
 /***** Function to check for the presence of cached file *****/
 int32_t checkCacheFile(int8_t *url)
 {
-    FILE *fp;
+    //int32_t newsockfd = *(int32_t*)socket_desc,nbytes;
+    FILE *fptr;
     int8_t *url_hash = MD5sum(url);
-    int8_t filename[BUFFER_SIZE];
+    int8_t filename[DOMAIN_NAME_SIZE],status=0;
+    int8_t buffer[BUFFER_SIZE];
     int8_t* line=NULL;
     size_t length;
     uint32_t fileCreationTime=0;
@@ -45,27 +47,37 @@ int32_t checkCacheFile(int8_t *url)
     bzero(filename, sizeof(filename));
     sprintf(filename, "cache/%s", url_hash);
     printf("Filename in CacheFileCheck: %s\n", filename );
-    if((fp = fopen(filename, "r")) != NULL)
+    if((fptr = fopen(filename, "r")) != NULL)
     {
-        getline(&line, &length, fp);
+        getline(&line, &length, fptr);
         sscanf(line, "%lu", &fileCreationTime); // Extracting the file creation time from the file
         exp_time = current_time - fileCreationTime; // Cache Expiration check
         if(exp_time < timeout)
         {
-            fclose(fp);
-            return 1;
+            status = 1;
         }
         else
         {
-            fclose(fp);
             remove(filename);
-            return 0;
+	    fclose(fptr);
         }
     }
-    else
+    /*if(status)
     {
-        return 0;
-    }
+    	printf("\n*****Page found in Cache Socket:%d*****\n", newsockfd );
+                getline(&line, &length, fptr);
+                //sending file to client if found in cache
+                bzero(buffer, sizeof(buffer));
+                while((nbytes = fread(buffer, 1, sizeof(buffer), fptr)))
+                {
+                    send(newsockfd, buffer, nbytes, 0);
+                    bzero(buffer, sizeof(buffer));
+                }
+    		shutdown(newsockfd,SHUT_RDWR);
+    		close(newsockfd);
+                fclose(fptr);
+    }*/
+    return status;
 }
 
 
@@ -78,7 +90,7 @@ int32_t checkCacheHost(int8_t *hostname, int8_t *ip)
     int8_t  filename[BUFFER_SIZE];
     int32_t flag=0;
     bzero(filename, sizeof(filename));
-    sprintf(filename, "cache/hosts");
+    sprintf(filename, "Hostnames_IP");
     if((fp = fopen(filename, "r")) == NULL)
     {
         return 0;
@@ -104,6 +116,32 @@ int32_t checkCacheHost(int8_t *hostname, int8_t *ip)
     }
 }
 
+int32_t check_valid_ip(int8_t *hostname,struct hostent *host_ptr,void *socket_desc)
+{
+	int32_t newsockfd = *(int32_t*)socket_desc,nbytes;
+	uint8_t i=0;
+	host_ptr=gethostbyname(hostname);
+	if(host_ptr!=NULL)
+	{
+		#ifdef DEBUG
+		printf("\nReal Name->%s",host_ptr->h_name);
+		while(*(host_ptr->h_aliases+i)!=NULL)
+		{
+			printf("\nAlias = %s",*(host_ptr->h_addr_list+i++));
+		}		
+		printf("\nIp found");
+		return 1;
+		#endif
+	}
+	else
+	{
+		nbytes = send(newsockfd, error404,strlen(error404), 0 );
+    		shutdown(newsockfd,SHUT_RDWR);
+    		close(newsockfd);
+		printf("\nIP not found");
+		return -404;	
+	}
+}
 
 /***** Function to check for the requested URL in forbidden websites link *****/
 int32_t checkForbiddenHost(int8_t  *hostname,void *socket_desc)
@@ -114,7 +152,7 @@ int32_t checkForbiddenHost(int8_t  *hostname,void *socket_desc)
     int8_t * temp=hostname;
     size_t length;
     int32_t found = 0;
-    if((fptr = fopen("cache/Blacklist", "r")) != NULL)
+    if((fptr = fopen("Blacklist", "r")) != NULL)
     {
         if(strchr(hostname, ':'))
         {

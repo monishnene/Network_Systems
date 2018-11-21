@@ -93,7 +93,7 @@ void *connection_handler(void *socket_desc)
 {
     int32_t newsockfd = *(int32_t*)socket_desc,sockfd1;
     int8_t filename[BUFFER_SIZE],url[DOMAIN_NAME_SIZE],ip[IP_ADDRESS_SIZE],hostname[DOMAIN_NAME_SIZE];
-    struct hostent *server_hp;							
+    struct hostent *host_ptr;							
     FILE *fp;
     struct sockaddr_in server;
     int32_t nbytes=0,error_check=0;
@@ -111,18 +111,17 @@ void *connection_handler(void *socket_desc)
     {
         strncpy(req_buffer, buffer, nbytes);
         bzero(url, sizeof(DOMAIN_NAME_SIZE));
-	error_check=check_valid_input(buffer,url,socket_desc);
-	if(error_check<0)
+	if(check_valid_input(buffer,url,socket_desc)<0)
 	{
-		continue;	
+		break;	
 	}
         url_hash = MD5sum(url); //Calling MD5sum function to get hash value to create filename
-            sscanf(url, "%*[^/]%*c%*c%[^/]", hostname);
-            printf("Hostname: %s\n", hostname );
-            if(checkForbiddenHost(hostname,socket_desc))
-            {
-		continue;
-            }
+        sscanf(url, "%*[^/]%*c%*c%[^/]", hostname);
+        printf("Hostname: %s\n", hostname );
+        if(checkForbiddenHost(hostname,socket_desc))
+        {
+		break;
+        }
             //Function call to check whether file is present in the cache
             int32_t cacheFilePresent = checkCacheFile(url);
             if(cacheFilePresent == 1)
@@ -140,7 +139,9 @@ void *connection_handler(void *socket_desc)
                     send(newsockfd, buffer, nbytes, 0);
                     bzero(buffer, sizeof(buffer));
                 }
-                fclose(fp);
+                fclose(fp);		
+    		shutdown(newsockfd,SHUT_RDWR);
+    		close(newsockfd);
                 continue;
             }
             else
@@ -164,7 +165,7 @@ void *connection_handler(void *socket_desc)
                     {
                         printf("\n*******Host Present in Cache*******\n");
                         bzero(filename, sizeof(filename));
-                        sprintf(filename, "./cache/hosts");
+                        sprintf(filename, "Hostnames_IP");
                         //fp = fopen(filename, "ab");
                         bzero(&server,sizeof(server));               //zero the struct
                         server.sin_family = AF_INET;                 //address family
@@ -178,10 +179,10 @@ void *connection_handler(void *socket_desc)
                         server.sin_family = AF_INET;                 //address family
                         server.sin_port = htons(atoi(port));      //sets port to network byte order
                         //server.sin_addr.s_addr = inet_addr(hostname); //sets remote IP address
-                        server_hp = gethostbyname(hostname);					 // Return information about host in argv[1]
-                        bcopy((int8_t*)server_hp->h_addr, (int8_t*)&server.sin_addr, server_hp->h_length);
+                        host_ptr = gethostbyname(hostname);					 // Return information about host in argv[1]
+                        bcopy((int8_t*)host_ptr->h_addr, (int8_t*)&server.sin_addr, host_ptr->h_length);
                         //Check for Valid Server
-                        if(server_hp < 0)
+                        if(host_ptr < 0)
                         {
                             bzero(buffer, sizeof(buffer));
                             sprintf(buffer, error404,strlen(error404));
@@ -192,7 +193,7 @@ void *connection_handler(void *socket_desc)
                         else
                         {
                             bzero(filename, sizeof(filename));
-                            sprintf(filename, "./cache/hosts");
+                            sprintf(filename, "Hostnames_IP");
                             fp = fopen(filename, "ab");
                             bzero(buffer, sizeof(buffer));
                             sprintf(buffer, "%s %s\n", hostname, inet_ntoa(server.sin_addr));
