@@ -1,0 +1,24 @@
+1542758935
+HTTP/1.1 304 Not Modified
+Date: Tue, 20 Nov 2018 23:38:46 GMT
+Server: Apache
+X-Content-Type-Options: nosniff
+X-Powered-By: PHP/5.6.30-0+deb8u1
+X-Drupal-Cache: MISS
+Expires: Sun, 19 Nov 1978 05:00:00 GMT
+Cache-Control: public, max-age=10800
+X-Content-Type-Options: nosniff
+Content-Language: en
+X-Frame-Options: SAMEORIGIN
+X-Generator: Drupal 7 (http://drupal.org)
+Etag: "1542757126-1"
+Last-Modified: Tue, 20 Nov 2018 23:38:46 GMT
+Vary: Cookie,Accept-Encoding
+Content-Encoding: gzip
+Content-Type: text/html; charset=utf-8
+X-Varnish: 873103574 864454308
+Age: 1808
+Via: 1.1 varnish-v4
+grace: none
+Connection: keep-alive
+

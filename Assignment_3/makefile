@@ -9,7 +9,7 @@
 			-pthread \
 			-lrt \
 			-lm \
-			-lc
+			-lc \
 
 	port_number = 8000
 
@@ -28,7 +28,7 @@
 build:	proxy.elf	
 
 %.elf:	$(objects)	$(deps)
-	$(CC)	$(flags)	-o	$@	$(objects)	
+	$(CC)	$(flags)	-o	$@	$(objects)	-lcrypto	-lssl
 
 %.i:%.c		$(includes)
 	$(CC)	$(flags)	-S	$<	-o	$@
