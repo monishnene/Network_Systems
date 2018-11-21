@@ -111,9 +111,12 @@ void *connection_handler(void *socket_desc)
     {
         strncpy(req_buffer, buffer, nbytes);
         bzero(url, sizeof(DOMAIN_NAME_SIZE));
-	if(check_valid_input(buffer,url,socket_desc)<0)
-	{
-		break;	
+	if(check_valid_input(buffer,url)<0)
+	{	
+            nbytes = send(newsockfd,  error400,strlen(error400), 0 );
+            shutdown(newsockfd,SHUT_RDWR);
+	    close(newsockfd);
+	    break;	
 	}
         url_hash = MD5sum(url); //Calling MD5sum function to get hash value to create filename
         sscanf(url, "%*[^/]%*c%*c%[^/]", hostname);
@@ -122,6 +125,10 @@ void *connection_handler(void *socket_desc)
         {
 		break;
         }
+	if(check_valid_ip(hostname,socket_desc)<0)
+	{
+		break;
+	}
             //Function call to check whether file is present in the cache
             int32_t cacheFilePresent = checkCacheFile(url);
             if(cacheFilePresent == 1)
@@ -218,7 +225,7 @@ void *connection_handler(void *socket_desc)
                 send(sockfd1, req_buffer, strlen(req_buffer), 0);
                 bzero(buffer, sizeof(buffer));
                 bzero(filename, sizeof(filename));
-                sprintf(filename, "./cache/%s", url_hash);
+                sprintf(filename, "cache/%s", url_hash);
                 fp = fopen(filename, "ab");
                 if(fp < 0)
                 {

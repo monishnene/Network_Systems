@@ -116,9 +116,10 @@ int32_t checkCacheHost(int8_t *hostname, int8_t *ip)
     }
 }
 
-int32_t check_valid_ip(int8_t *hostname,struct hostent *host_ptr,void *socket_desc)
+int32_t check_valid_ip(int8_t *hostname,void *socket_desc)
 {
 	int32_t newsockfd = *(int32_t*)socket_desc,nbytes;
+	struct hostent *host_ptr;
 	uint8_t i=0;
 	host_ptr=gethostbyname(hostname);
 	if(host_ptr!=NULL)
@@ -178,34 +179,24 @@ int32_t checkForbiddenHost(int8_t  *hostname,void *socket_desc)
     return found;
 }
 
-int32_t check_valid_input(int8_t* buffer,int8_t* url,void *socket_desc)
+int32_t check_valid_input(int8_t* buffer,int8_t* url)
 {
-    	int32_t newsockfd = *(int32_t*)socket_desc,nbytes;
 	int8_t* method=(int8_t*)malloc(DATA_SIZE);
 	int8_t* version=(int8_t*)malloc(DATA_SIZE);
 	sscanf(buffer, "%s %s %s", method, url, version);
         if(strcmp(method, get_str) != 0)
         {
             printf("\nUnsupported Method %s",method);
-            nbytes = send(newsockfd,  error400,strlen(error400), 0 );
-            shutdown(newsockfd,SHUT_RDWR);
-	    close(newsockfd);
 	    return -400;
         }
         else if((strstr(url,https_str) != NULL) || (strstr(url,http_str) == NULL))
         {
             printf("\nUnsupported URL %s",url);
-            nbytes = send(newsockfd,  error400,strlen(error400), 0 );
-            shutdown(newsockfd,SHUT_RDWR);
-	    close(newsockfd);
 	    return -400;
         }
         else if((strcmp(version, v0) != 0) && (strcmp(version, v1) != 0))
         {
             printf("\nUnsupported Version %s",version);
-            nbytes = send(newsockfd,  error400,strlen(error400), 0 );
-            shutdown(newsockfd,SHUT_RDWR);
-	    close(newsockfd);
 	    return -400;
         }
 	return 0;
