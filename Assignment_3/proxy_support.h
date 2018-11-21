@@ -57,11 +57,10 @@ static uint8_t error403[]=
 struct timeval timer;
 uint32_t timeout;
 
-int8_t* MD5sum(int8_t *url);
-int32_t checkCacheFile(int8_t *url);
-int32_t checkCacheHost(int8_t *hostname, int8_t *ip);
-int32_t checkForbiddenHost(int8_t  *hostname,void *socket_desc);
-int32_t check_valid_input(int8_t* buffer,int8_t* url);
-int32_t check_valid_ip(int8_t *hostname,void *socket_desc);
+int32_t cache_check(int8_t *url);
+int32_t IP_cache_check(int8_t *hostname, int8_t *ip);
+int32_t blacklist_check(int8_t  *hostname,void *socket_ptr);
+int32_t input_check(int8_t* buffer,int8_t* url);
+int32_t IP_validity_check(int8_t *hostname,void *socket_ptr);
 void md5_encode(int8_t *url,int8_t* url_encoded);
 #endif
