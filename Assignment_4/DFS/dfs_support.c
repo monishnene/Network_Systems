@@ -161,7 +161,7 @@ uint8_t act_server(commands command)
 		}
 		case get:
 		{
-			error_check=send_file();			
+			//error_check=send_file();			
 			if(error_check)
 			{
 				printf("File %s is not found.\n",filename);
@@ -211,24 +211,6 @@ uint8_t receive_file()
 	{
 		printf("\nFile size matched");
 		fwrite(buffer, 1, data_bytes, fptr);
-	}
-	fclose(fptr);
-	return data_bytes;
-}
-
-uint8_t send_file()
-{	
-	int32_t data_bytes=1;
-	FILE* fptr=fopen(filename, "r");
-	if(fptr != NULL)
-	{            
-            bzero(buffer, sizeof(buffer));
-            while(data_bytes = fread(buffer, 1, sizeof(buffer), fptr))
-            {
-        	send(sock, buffer, data_bytes, 0);
-                bzero(buffer, sizeof(buffer));
-            }
-	    data_bytes = 0;
 	}
 	fclose(fptr);
 	return data_bytes;

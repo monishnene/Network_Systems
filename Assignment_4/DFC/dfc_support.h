@@ -60,6 +60,7 @@ void remove_newline_char(int8_t* str);
 void error(uint8_t *msg);
 uint8_t command_catch(uint8_t* input);
 uint8_t send_file(uint8_t server_ID);
-uint8_t receive_file(uint8_t server_ID);
 uint8_t act_client(commands command);
+int32_t split_file();
+int32_t merge_file();
 #endif

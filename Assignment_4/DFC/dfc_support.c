@@ -74,9 +74,69 @@ uint8_t command_catch(uint8_t* input)
 	return command_caught;
 }
 
+int32_t split_file()
+{
+	int32_t data_bytes=0,n=0,eof_check=0,file_size=0,split[5];
+	uint8_t temp_filename[20],i=0;
+	FILE* fptr=fopen(filename, "r");
+	FILE* split_fptr;
+	fseek(fptr,0,SEEK_END);
+	file_size=ftell(fptr);
+	fseek(fptr,0,SEEK_SET);
+	bzero(buffer,BUFFER_SIZE);
+	n=fread(buffer,1,file_size,fptr);
+	split[0]=0;
+	split[1]=file_size/4;
+	split[2]=file_size/2;
+	split[3]=(file_size*3)/4;
+	split[4]=file_size;
+	printf("\nsplit info = %d %d %d %d %d %d",n,split[0],split[1],split[2],split[3],split[4]);
+	if(n==file_size)
+	{
+		for(i=0;i<TOTAL_SERVERS;i++)
+		{
+			bzero(temp_filename,20);
+			sprintf(temp_filename,"%s.%d",filename,i+1);
+			split_fptr = fopen(temp_filename, "w");
+			printf("\nnew split filename = %s",temp_filename);
+			fwrite(&buffer[split[i]], 1, split[i+1]-split[i], split_fptr);
+			fclose(split_fptr);
+		}
+	}
+	fclose(fptr);
+	return file_size;
+}
+
+int32_t merge_file()
+{
+	int32_t data_bytes=0,n=0,eof_check=0,file_size=0,split[5];
+	uint8_t temp_filename[20],i=0;
+	FILE* fptr=fopen("merge_test", "w");
+	FILE* split_fptr;
+	for(i=0;i<TOTAL_SERVERS;i++)
+	{	
+		bzero(buffer,BUFFER_SIZE);
+		bzero(temp_filename,20);
+		sprintf(temp_filename,"%s.%d",filename,i+1);
+		split_fptr = fopen(temp_filename, "r");
+		fseek(split_fptr,0,SEEK_END);
+		file_size=ftell(split_fptr);
+		fseek(split_fptr,0,SEEK_SET);
+		n=fread(buffer,1,file_size,split_fptr);
+		printf("\nmerge filename = %s",temp_filename);
+		fwrite(buffer, 1, file_size,fptr);
+		fclose(split_fptr);
+	}	
+	fseek(fptr,0,SEEK_END);
+	file_size=ftell(fptr);
+	fseek(fptr,0,SEEK_SET);
+	fclose(fptr);
+	return file_size;
+}
+
 uint8_t act_client(commands command)
 {
-	int32_t error_check=0;
+	int32_t error_check=0,n=0;
 	uint8_t i=0;
 	switch(command)
 	{
@@ -84,12 +144,18 @@ uint8_t act_client(commands command)
 		{
 			for(i=0;i<TOTAL_SERVERS;i++)
 			{
-				error_check=receive_file(i);
+				//error_check=receive_file(i);
 			}
 			break;
 		}
 		case put:
 		{
+			error_check=split_file();
+			n=merge_file();
+			if(error_check==n)
+			{
+				printf("\nSplit and merge filesize matches");
+			}
 			for(i=0;i<TOTAL_SERVERS;i++)
 			{
 				error_check=send_file(i);
@@ -114,23 +180,6 @@ uint8_t act_client(commands command)
 		}
 	}
 	return error_check;
-}
-
-uint8_t receive_file(uint8_t server_ID)
-{
-	FILE* fptr;
-	int32_t data_bytes=1;
-	fptr = fopen(filename, "ab");
-        bzero(buffer, sizeof(buffer));
-        while(data_bytes)
-        {
-        	data_bytes = recv(web_socket[server_ID], buffer, sizeof(buffer), 0);
-                printf("\nbuffer_filled=%d, buffer_len=%ld ",data_bytes,strlen(buffer));
-                fwrite(buffer, 1, data_bytes, fptr);
-                bzero(buffer, sizeof(buffer));
-        }
-	fclose(fptr);
-	return data_bytes;
 }
 
 uint8_t send_file(uint8_t server_ID)
