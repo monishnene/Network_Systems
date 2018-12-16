@@ -45,8 +45,10 @@ int32_t main(int32_t argc, uint8_t **argv)
 	remove_newline_char(username);
 	remove_newline_char(password);
 	struct sockaddr_in server[TOTAL_SERVERS];
-	int32_t web_socket[TOTAL_SERVERS],read_size=0;
+	int32_t read_size=0,n=0;
 	uint8_t i=0,authorization[TOTAL_SERVERS],authorization_check=0;
+	uint8_t client_input[CLIENT_MESSAGE_SIZE],server_response[CLIENT_MESSAGE_SIZE];	
+    	commands command_caught;
 	for(i=0;i<TOTAL_SERVERS;i++)
 	{
 		server[i].sin_addr.s_addr = INADDR_ANY;
@@ -79,10 +81,21 @@ int32_t main(int32_t argc, uint8_t **argv)
 	printf("\nauthorization_check = %d",authorization_check);
 	if(authorization_check==TOTAL_SERVERS*approved)
 	{		
-		printf("\nAuthorization Successful %d",authorization_check);
+		printf("\nAuthorization Successful");
 		while(1)
 		{
-			i++;
+			bzero(client_input, CLIENT_MESSAGE_SIZE);
+			printf("\nPlease enter msg: ");
+    			fgets(client_input, CLIENT_MESSAGE_SIZE, stdin);
+			command_caught=command_catch(client_input);
+			printf("\nInput:%s Command Caught = %d, filename = %s",client_input,command_caught,filename);
+			for(i=0;i<TOTAL_SERVERS;i++)
+			{
+				bzero(server_response, CLIENT_MESSAGE_SIZE);
+				send(web_socket[i], client_input, strlen(client_input), 0);
+				read_size = recv(web_socket[i], server_response , CLIENT_MESSAGE_SIZE, 0);
+				printf("\nServer %d response: %s",i+1,server_response);		
+			}	
 		}
 	}
 	else if(authorization_check==TOTAL_SERVERS*user_not_found)
