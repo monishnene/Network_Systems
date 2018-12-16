@@ -17,9 +17,9 @@
 ***********************************************************************/
 int32_t main(int32_t argc, uint8_t **argv)
 {
-	if (argc != 2)
+	if (argc != 3)
     	{
-        	printf ("\nUsage: <filename.conf>\n");
+        	printf ("\nUsage: <filename.conf> <subfolder>\n");
         	exit(1);
     	}
 	FILE* fptr;
@@ -69,9 +69,9 @@ int32_t main(int32_t argc, uint8_t **argv)
             		printf("\nError in connecting to socket");
             		continue;
         	}
-		sprintf(configuration_str,"%d %s %s",i+1,username,password);
+		sprintf(configuration_str,"%d %s %s %s",i+1,username,password,argv[2]);
         	send(web_socket[i], configuration_str, strlen(configuration_str), 0);
-		read_size = recv(web_socket[i], &authorization[i] , 1, 0);
+		read_size = read(web_socket[i], &authorization[i] , 1);
 	}
 	fclose(fptr);
 	for(i=0;i<TOTAL_SERVERS;i++)
@@ -91,11 +91,9 @@ int32_t main(int32_t argc, uint8_t **argv)
 			printf("\nInput:%s Command Caught = %d, filename = %s",client_input,command_caught,filename);
 			for(i=0;i<TOTAL_SERVERS;i++)
 			{
-				bzero(server_response, CLIENT_MESSAGE_SIZE);
-				send(web_socket[i], client_input, strlen(client_input), 0);
-				read_size = recv(web_socket[i], server_response , CLIENT_MESSAGE_SIZE, 0);
-				printf("\nServer %d response: %s",i+1,server_response);		
-			}	
+				write(web_socket[i], client_input, strlen(client_input));	
+			}
+			act_client(command_caught);	
 		}
 	}
 	else if(authorization_check==TOTAL_SERVERS*user_not_found)

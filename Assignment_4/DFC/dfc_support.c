@@ -38,7 +38,8 @@ void remove_newline_char(int8_t* str)
 ***********************************************************************/
 uint8_t command_catch(uint8_t* input)
 {
-	uint8_t command_caught=0,i=0;
+	uint8_t command_caught=0,i=0;	
+        bzero(filename,20);
 	if(!strncmp(input,get_str,strlen(get_str)))
 	{
 		command_caught=get;
@@ -61,42 +62,99 @@ uint8_t command_catch(uint8_t* input)
 	{
 		command_caught=list;
 	}
+	else if(!strncmp(input,mkdir_str,strlen(mkdir_str)))
+	{
+		command_caught=mkdir;
+		input += strlen(mkdir_str)+1;
+		while(*(input)!=NEW_LINE)
+		{
+			filename[i++]=*(input++);
+		}
+	}
 	return command_caught;
 }
 
 uint8_t act_client(commands command)
 {
-	uint8_t error_check=0;
+	int32_t error_check=0;
+	uint8_t i=0;
 	switch(command)
 	{
 		case get:
 		{
-			receive_file(filename);
+			for(i=0;i<TOTAL_SERVERS;i++)
+			{
+				error_check=receive_file(i);
+			}
 			break;
 		}
 		case put:
 		{
-			error_check=send_file(filename);
+			for(i=0;i<TOTAL_SERVERS;i++)
+			{
+				error_check=send_file(i);
+			}			
 			if(!error_check)
 			{
-				printf("File %s is not found.\n",filename);
+				printf("\nFile %s is not found.\n",filename);
 			}
+			break;
+		}
+		case mkdir:
+		{
+			break;
+		}
+		case list:
+		{
 			break;
 		}
 		default:
 		{
-			syslog(SYSLOG_PRIORITY,"\nNo Command Caught = %d",command);
+			printf("\nInvalid Command");
 		}
 	}
+	return error_check;
 }
 
-uint8_t receive_file(filename,uint8_t server_ID)
+uint8_t receive_file(uint8_t server_ID)
 {
-	
+	FILE* fptr;
+	int32_t data_bytes=1;
+	fptr = fopen(filename, "ab");
+        bzero(buffer, sizeof(buffer));
+        while(data_bytes)
+        {
+        	data_bytes = recv(web_socket[server_ID], buffer, sizeof(buffer), 0);
+                printf("\nbuffer_filled=%d, buffer_len=%ld ",data_bytes,strlen(buffer));
+                fwrite(buffer, 1, data_bytes, fptr);
+                bzero(buffer, sizeof(buffer));
+        }
+	fclose(fptr);
+	return data_bytes;
 }
 
-uint8_t send_file(filename,uint8_t server_ID)
-{
-	
+uint8_t send_file(uint8_t server_ID)
+{	
+	int32_t data_bytes=0,n=0,eof_check=0,file_size=0;
+	uint8_t data[PACKET_SIZE],i=0,receiver_ready=0;
+	FILE* fptr=fopen(filename, "r");
+	fseek(fptr,0,SEEK_END);
+	file_size=ftell(fptr);
+	fseek(fptr,0,SEEK_SET);
+	n = read(web_socket[server_ID],&receiver_ready,sizeof(receiver_ready));
+	write(web_socket[server_ID],&file_size,sizeof(file_size));
+	bzero(buffer,BUFFER_SIZE);
+	n=fread(buffer,1,file_size,fptr);
+	if(n==file_size)
+	{
+		printf("\nFile %s with %d bytes sent to servers",filename,file_size);	
+		write(web_socket[server_ID],buffer,file_size);
+	}
+	else
+	{
+		printf("\nFile size error file_size = %d, n = %d",file_size,n);
+	}
+	fclose(fptr);
+	return file_size;
 }
 

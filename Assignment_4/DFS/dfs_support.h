@@ -16,6 +16,7 @@
 #define SYSLOG_PRIORITY 99
 #define PACKET_SIZE 32
 #define DATA_SIZE 100
+#define PATH_SIZE 100
 #define CLIENT_MESSAGE_SIZE 50
 #define NEW_LINE 10
 #define EOF_NEW 1
@@ -31,6 +32,7 @@ typedef enum
 	get=1,
 	put,
 	list,
+	mkdir,
 }commands;
 
 typedef enum
@@ -42,7 +44,7 @@ typedef enum
 }short_signals;
 
 uint32_t buffer_filled;
-int32_t sockfd; /* socket */
+int32_t sockfd,sock; /* socket */
 int32_t portno; /* port to listen on */
 uint32_t partner_len; /* byte size of client's address */
 uint8_t *hostaddrp; /* dotted decimal host addr string */
@@ -50,21 +52,26 @@ int32_t optval; /* flag value for setsockopt */
 static uint8_t get_str[]="GET";
 static uint8_t put_str[]="PUT";
 static uint8_t ls_str[]="LIST";
-static uint8_t server_id=0;
+static uint8_t mkdir_str[]="MKDIR";
+uint8_t server_id;
 uint8_t buffer[BUFFER_SIZE];
 static uint8_t test_str[]="\nWelcome to Monish Nene's Web Server";
 static uint8_t conf_filename[]="dfs.conf";
 int8_t username[20];
 int8_t password[20];
+uint8_t path[PATH_SIZE];
 uint8_t filename[20];
-uint8_t path[50];
+int32_t file_size;
 commands method;
 struct timeval timer;
 
 short_signals authorization_check(int8_t *username, int8_t *password);
 uint8_t command_catch(uint8_t* input);
 void error(uint8_t *msg);
-int32_t send_file(uint8_t* fname,uint8_t* buffer,uint8_t* postdata);
+uint8_t folder_creation();
 uint8_t search_str(uint8_t* haystack,uint8_t* needle);
 uint8_t file_extension_check(uint8_t* fname, uint8_t* extension);
+uint8_t send_file();
+uint8_t receive_file();
+uint8_t act_server(commands command);
 #endif

@@ -26,11 +26,11 @@ short_signals authorization_check(int8_t *username, int8_t *password)
     {
         while((getline(&line, &length, fptr)) != -1)
         {
-	    printf("\n line = %s",line);
+	    //printf("\n line = %s",line);
             if(strstr(line, username))
             {
                 sscanf(line, "%s %s",username,temp_password);
-		printf("\n username = %s,temp_password = %s,password = %s",username,temp_password,password);
+		//printf("\n username = %s,temp_password = %s,password = %s",username,temp_password,password);
                 if(strcmp(temp_password,password))
 		{
         		fclose(fptr);
@@ -111,7 +111,8 @@ uint8_t search_str(uint8_t* haystack,uint8_t* needle)
 ***********************************************************************/
 uint8_t command_catch(uint8_t* input)
 {
-	uint8_t command_caught=0,i=0;
+	uint8_t command_caught=0,i=0;		
+        bzero(filename,20);
 	if(!strncmp(input,get_str,strlen(get_str)))
 	{
 		command_caught=get;
@@ -134,6 +135,101 @@ uint8_t command_catch(uint8_t* input)
 	{
 		command_caught=list;
 	}
+	else if(!strncmp(input,mkdir_str,strlen(mkdir_str)))
+	{
+		command_caught=mkdir;
+		input += strlen(mkdir_str)+1;
+		while(*(input)!=NEW_LINE)
+		{
+			filename[i++]=*(input++);
+		}
+	}
 	return command_caught;
 }
 
+
+uint8_t act_server(commands command)
+{
+	int32_t error_check=0;
+	uint8_t i=0;
+	switch(command)
+	{
+		case put:
+		{
+			error_check=receive_file();
+			break;
+		}
+		case get:
+		{
+			error_check=send_file();			
+			if(error_check)
+			{
+				printf("File %s is not found.\n",filename);
+			}
+			break;
+		}
+		case mkdir:
+		{
+			error_check=folder_creation();
+			break;
+		}
+		case list:
+		{
+			break;
+		}
+		default:
+		{
+			printf("\nInvalid Command");
+		}
+	}
+	return error_check;
+}
+
+uint8_t folder_creation()
+{
+	int8_t mkdir_str[20];
+	sprintf(mkdir_str,"mkdir DFS%d/%s/",server_id,filename);	
+	printf("\nFolder created by command %s",mkdir_str);
+	system(mkdir_str);
+}
+
+uint8_t receive_file()
+{
+	FILE* fptr;
+	int32_t data_bytes=1;
+	uint8_t receiver_ready=1;
+	int8_t temp_filename[PATH_SIZE];
+	sprintf(temp_filename,"%s%s",path,filename);
+	fptr = fopen(temp_filename, "w");
+	//printf("\npath=%s",temp_filename);
+        bzero(buffer, sizeof(buffer));
+	data_bytes = write(sock,&receiver_ready,sizeof(receiver_ready));
+        data_bytes = read(sock,&file_size,sizeof(file_size));
+	printf("\nFile size to be received = %d",file_size);
+	data_bytes = read(sock,buffer,file_size);
+	if(data_bytes==file_size)
+	{
+		printf("\nFile size matched");
+		fwrite(buffer, 1, data_bytes, fptr);
+	}
+	fclose(fptr);
+	return data_bytes;
+}
+
+uint8_t send_file()
+{	
+	int32_t data_bytes=1;
+	FILE* fptr=fopen(filename, "r");
+	if(fptr != NULL)
+	{            
+            bzero(buffer, sizeof(buffer));
+            while(data_bytes = fread(buffer, 1, sizeof(buffer), fptr))
+            {
+        	send(sock, buffer, data_bytes, 0);
+                bzero(buffer, sizeof(buffer));
+            }
+	    data_bytes = 0;
+	}
+	fclose(fptr);
+	return data_bytes;
+}

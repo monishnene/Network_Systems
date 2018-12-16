@@ -23,7 +23,7 @@ int main(int argc , char *argv[])
    	int socket_desc , client_sock , c , *new_sock;
     	uint8_t check=1;
     	struct sockaddr_in server , client;
-
+	bzero(path,PATH_SIZE);
     	//Create socket
     	socket_desc = socket(AF_INET , SOCK_STREAM , 0);
     	if (socket_desc == -1)
@@ -99,17 +99,23 @@ int main(int argc , char *argv[])
 void *connection_handler(void *socket_desc)
 {
     	//Get the socket descriptor
-   	int32_t sock = *(int*)socket_desc;
+   	sock = *(int*)socket_desc;
     	int32_t read_size,n=0;
     	uint8_t command=0,response=0;
     	int8_t username[20];
     	int8_t password[20];
+    	int8_t subfolder[20];
+	int8_t mkdir_str[20];
     	uint8_t client_message[CLIENT_MESSAGE_SIZE],server_response[CLIENT_MESSAGE_SIZE];
     	commands command_caught;
     	read_size = recv(sock , client_message , CLIENT_MESSAGE_SIZE , 0);
     	//printf("\nclient to server = %s",client_message);
-    	sscanf(client_message, "%d %s %s",&server_id,username,password);
+    	sscanf(client_message, "%hhd %s %s %s",&server_id,username,password,subfolder);
     	//printf("\nServer %d received username:%s password:%s from client\n",server_id,username,password);
+	sprintf(path,"DFS%d/%s/",server_id,subfolder);
+	printf("path=%s",path);
+	sprintf(mkdir_str,"mkdir %s",path);
+	system(mkdir_str);
     	if((username==NULL)||(password==NULL))
     	{
 		response = user_not_found;
@@ -121,14 +127,22 @@ void *connection_handler(void *socket_desc)
     		send(sock, &response, 1, 0);
     	}
     	//Receive a message from client
-	bzero(client_message , CLIENT_MESSAGE_SIZE);
-    	while((read_size = recv(sock , client_message , CLIENT_MESSAGE_SIZE , 0)) > 0)
-    	{		
+    	while(1)
+    	{	
+		bzero(client_message , CLIENT_MESSAGE_SIZE);
+		read_size = read(sock,client_message,CLIENT_MESSAGE_SIZE);
+		if(read_size<=0)
+		{
+			break;
+		}
 		command_caught=command_catch(client_message);
-		printf("\nInput:%s Command Caught = %d",client_message,command_caught);
-		sprintf(server_response,"Command Caught = %d, filename = %s",command_caught,filename);
-		send(sock, server_response, strlen(server_response), 0);
- 		bzero(client_message , CLIENT_MESSAGE_SIZE);
+		//if(command_caught > 0)
+		{		
+			printf("\nInput:%s Command Caught = %d",client_message,command_caught);
+			act_server(command_caught);
+		} 		
+		bzero(client_message , CLIENT_MESSAGE_SIZE);
+		printf("\nServer %d ready for next command",server_id);
     	}
     	puts("\nClient disconnected\n");
     	fflush(stdout);

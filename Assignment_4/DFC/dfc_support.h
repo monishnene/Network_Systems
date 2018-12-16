@@ -27,6 +27,7 @@ typedef enum
 	get=1,
 	put,
 	list,
+	mkdir,
 }commands;
 
 typedef enum
@@ -46,20 +47,19 @@ uint8_t buffer[BUFFER_SIZE];
 static uint8_t get_str[]="GET";
 static uint8_t put_str[]="PUT";
 static uint8_t ls_str[]="LIST";
+static uint8_t mkdir_str[]="MKDIR";
 static uint8_t EOF_message[]="End_of_File";
 uint8_t configuration_str[CLIENT_MESSAGE_SIZE];
 uint8_t configuration_response[10];
 uint8_t filename[20];
-uint8_t path[50];
+uint8_t path[DATA_SIZE];
 static uint8_t server_id=0;
 struct timeval timer;
 
 void remove_newline_char(int8_t* str);
 void error(uint8_t *msg);
 uint8_t command_catch(uint8_t* input);
-int32_t send_file(uint8_t* fname);
-int32_t receive_file(uint8_t* fname);
-void read_file(uint8_t* fname);
-uint32_t receive_packet(uint8_t* data);
-
+uint8_t send_file(uint8_t server_ID);
+uint8_t receive_file(uint8_t server_ID);
+uint8_t act_client(commands command);
 #endif
