@@ -112,7 +112,11 @@ void *connection_handler(void *socket_desc)
     	//printf("\nclient to server = %s",client_message);
     	sscanf(client_message, "%hhd %s %s %s",&server_id,username,password,subfolder);
     	//printf("\nServer %d received username:%s password:%s from client\n",server_id,username,password);
-	sprintf(path,"DFS%d/%s/",server_id,subfolder);
+	sprintf(path,"DFS%d/%s",server_id,username);
+	printf("path=%s",path);
+	sprintf(mkdir_str,"mkdir %s",path);
+	system(mkdir_str);
+	sprintf(path,"DFS%d/%s/%s/",server_id,username,subfolder);
 	printf("path=%s",path);
 	sprintf(mkdir_str,"mkdir %s",path);
 	system(mkdir_str);

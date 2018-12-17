@@ -54,13 +54,18 @@ uint8_t configuration_response[10];
 uint8_t filename[20];
 uint8_t path[DATA_SIZE];
 static uint8_t server_id=0;
+static uint8_t pair_table[4][4][2]=	{	{	{1,2},	{2,3},	{3,4},	{4,1}	},
+/*hashvalue,serve no.,fileno.*/		{	{4,1},	{1,2},	{2,3},	{3,4}	},
+					{	{3,4},	{4,1},	{1,2},	{2,3}	},
+					{	{2,3},	{3,4},	{4,1},	{1,2}	}};
 struct timeval timer;
 
 void remove_newline_char(int8_t* str);
 void error(uint8_t *msg);
 uint8_t command_catch(uint8_t* input);
-uint8_t send_file(uint8_t server_ID);
+uint8_t send_file(uint8_t* split_filename,uint8_t server_ID);
 uint8_t act_client(commands command);
+int32_t delete_split_files();
 int32_t split_file();
 int32_t merge_file();
 #endif

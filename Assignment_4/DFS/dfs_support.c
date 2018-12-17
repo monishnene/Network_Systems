@@ -157,6 +157,7 @@ uint8_t act_server(commands command)
 		case put:
 		{
 			error_check=receive_file();
+			error_check=receive_file();			
 			break;
 		}
 		case get:
@@ -198,20 +199,52 @@ uint8_t receive_file()
 	FILE* fptr;
 	int32_t data_bytes=1;
 	uint8_t receiver_ready=1;
-	int8_t temp_filename[PATH_SIZE];
-	sprintf(temp_filename,"%s%s",path,filename);
-	fptr = fopen(temp_filename, "w");
+	uint8_t temp_filename[PATH_SIZE],temp[20];
 	//printf("\npath=%s",temp_filename);
         bzero(buffer, sizeof(buffer));
+	bzero(temp,20);
 	data_bytes = write(sock,&receiver_ready,sizeof(receiver_ready));
         data_bytes = read(sock,&file_size,sizeof(file_size));
+	data_bytes = write(sock,&receiver_ready,sizeof(receiver_ready));
+	data_bytes = read(sock,temp,20);
+	data_bytes = write(sock,&receiver_ready,sizeof(receiver_ready));
+	sprintf(temp_filename,"%s%s",path,temp);
+	fptr = fopen(temp_filename, "w");
 	printf("\nFile size to be received = %d",file_size);
 	data_bytes = read(sock,buffer,file_size);
 	if(data_bytes==file_size)
 	{
-		printf("\nFile size matched");
+		printf("\nFile size matched filename=%s",temp_filename);
 		fwrite(buffer, 1, data_bytes, fptr);
 	}
 	fclose(fptr);
 	return data_bytes;
+}
+
+uint8_t send_file(uint8_t* split_filename,uint8_t server_ID)
+{	
+	int32_t data_bytes=0,n=0,eof_check=0,file_size=0;
+	uint8_t data[PACKET_SIZE],i=0,receiver_ready=0;
+	FILE* fptr=fopen(split_filename, "r");
+	fseek(fptr,0,SEEK_END);
+	file_size=ftell(fptr);
+	fseek(fptr,0,SEEK_SET);
+	n = read(web_socket[server_ID],&receiver_ready,sizeof(receiver_ready));
+	write(web_socket[server_ID],&file_size,sizeof(file_size));
+	n = read(web_socket[server_ID],&receiver_ready,sizeof(receiver_ready));
+	write(web_socket[server_ID],split_filename,20);
+	n = read(web_socket[server_ID],&receiver_ready,sizeof(receiver_ready));
+	bzero(buffer,BUFFER_SIZE);
+	n=fread(buffer,1,file_size,fptr);
+	if(n==file_size)
+	{
+		printf("\nFile %s with %d bytes sent to server %d",split_filename,file_size,server_ID+1);	
+		write(web_socket[server_ID],buffer,file_size);
+	}
+	else
+	{
+		printf("\nFile size error file_size = %d, n = %d",file_size,n);
+	}
+	fclose(fptr);
+	return file_size;
 }
