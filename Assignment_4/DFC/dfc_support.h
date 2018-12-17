@@ -21,7 +21,7 @@
 #define TIMEOUT_BIG 1000000
 #define TIMEOUT_SMALL 10
 #define BUFFER_SIZE (1024*1024*8)
-
+#define HASH_SIZE 1000
 typedef enum
 {
 	get=1,
@@ -68,5 +68,7 @@ uint8_t act_client(commands command);
 int32_t delete_split_files();
 int32_t split_file();
 int32_t merge_file();
+void list_analysis();
 uint8_t receive_file(uint8_t* temp_filename,uint8_t server_ID);
+uint8_t simple_receive_file(uint8_t server_ID);
 #endif

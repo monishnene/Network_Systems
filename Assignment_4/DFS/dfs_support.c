@@ -186,7 +186,8 @@ uint8_t act_server(commands command)
 			break;
 		}
 		case list:
-		{
+		{	
+			error_check=list_creation();
 			break;
 		}
 		default:
@@ -197,12 +198,55 @@ uint8_t act_server(commands command)
 	return error_check;
 }
 
+int32_t list_creation()
+{
+	uint8_t ls_command[PACKET_SIZE],ls_file[10],receiver_ready=0;
+	int32_t file_size=0;
+	bzero(ls_command,PACKET_SIZE);
+	bzero(ls_file,10);
+	sprintf(ls_file,"ls.txt.%d",server_id);
+	sprintf(ls_command,"ls %s>>%s",path,ls_file);
+	system(ls_command);
+	file_size=simple_send_file(ls_file);
+	remove(ls_file);
+	return file_size;
+}
+
+uint8_t simple_send_file(uint8_t* split_filename)
+{	
+	int32_t data_bytes=0,n=0,eof_check=0,file_size=0;
+	uint8_t data[PACKET_SIZE],i=0,receiver_ready=0;
+	FILE* fptr=fopen(split_filename, "r");
+	fseek(fptr,0,SEEK_END);
+	file_size=ftell(fptr);
+	fseek(fptr,0,SEEK_SET);
+	n = read(sock,&receiver_ready,sizeof(receiver_ready));
+	write(sock,&file_size,sizeof(file_size));
+	n = read(sock,&receiver_ready,sizeof(receiver_ready));
+	write(sock,split_filename,20);
+	n = read(sock,&receiver_ready,sizeof(receiver_ready));
+	bzero(buffer,BUFFER_SIZE);
+	n=fread(buffer,1,file_size,fptr);
+	if(n==file_size)
+	{
+		printf("\nFile %s with %d bytes sent to server %d",split_filename,file_size,server_id);	
+		write(sock,buffer,file_size);
+	}
+	else
+	{
+		printf("\nFile size error file_size = %d, n = %d",file_size,n);
+	}
+	fclose(fptr);
+	return file_size;
+}
+
 uint8_t folder_creation()
 {
 	int8_t mkdir_str[20];
 	sprintf(mkdir_str,"mkdir DFS%d/%s/%s/",server_id,username,filename);	
 	printf("\nFolder created by command %s",mkdir_str);
 	system(mkdir_str);
+	return 1;
 }
 
 uint8_t receive_file()

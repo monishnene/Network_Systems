@@ -151,7 +151,13 @@ int32_t merge_file()
 		//printf("\nmerge filename = %s",temp_filename);
 		fwrite(buffer, 1, file_size,fptr);
 		fclose(split_fptr);
-	}	
+	}
+	
+	for(i=0;i<TOTAL_SERVERS;i++)
+	{
+		sprintf(temp_filename,"%s.%d",filename,i+1);
+		remove(temp_filename);
+	}
 	fseek(fptr,0,SEEK_END);
 	file_size=ftell(fptr);
 	fseek(fptr,0,SEEK_SET);
@@ -224,11 +230,6 @@ uint8_t act_client(commands command)
 			{
 				printf("\nFile %s is not found.\n",filename);
 			}
-			for(i=0;i<TOTAL_SERVERS;i++)
-			{
-				sprintf(temp_filename,"%s.%d",filename,i+1);
-				remove(temp_filename);
-			}
 			break;
 		}
 		case mkdir:
@@ -237,6 +238,14 @@ uint8_t act_client(commands command)
 		}
 		case list:
 		{
+			for(i=0;i<TOTAL_SERVERS;i++)
+			{
+				error_check=simple_receive_file(i);
+			}
+			bzero(filename,20);
+			sprintf(filename,"ls.txt");
+			merge_file();
+			list_analysis();
 			break;
 		}
 		default:
@@ -245,6 +254,105 @@ uint8_t act_client(commands command)
 		}
 	}
 	return error_check;
+}
+
+void list_analysis()
+{
+	FILE* fptr;	
+	uint32_t i=0,sum=0,final=0,hash=0,j=0;
+	uint8_t hash_table[HASH_SIZE][4];
+	uint8_t shown[HASH_SIZE];
+    	int8_t name[20],number=0,temp[20]; 
+   	int8_t* line=NULL;
+    	size_t length;
+	for(i=0;i<HASH_SIZE;i++)
+	{
+		for(j=0;j<4;j++)
+		{
+			hash_table[i][j]=0;
+		}
+	}
+	bzero(shown,HASH_SIZE);
+    	if((fptr = fopen("Get_ls.txt", "r")) != NULL)
+    	{
+        	while((getline(&line, &length, fptr)) != -1)
+        	{
+			bzero(name,20);
+			sscanf(line, "%s",name);
+			length=strlen(name);
+			number=name[length-1]-'1';
+			name[length-1]=0;
+			name[length-2]=0;
+			sum=0;
+			i=0;
+			while(name[i]!=0)
+			{
+				sum+=name[i++];
+			}
+			hash=sum%HASH_SIZE;
+			hash_table[hash][number]=1;
+		}
+		fseek(fptr,0,SEEK_SET);
+		printf("\n\nList Results");
+		while((getline(&line, &length, fptr)) != -1)
+		{
+			bzero(name,20);
+			sscanf(line, "%s",name);
+			length=strlen(name);
+			number=name[length-1]-'1';
+			name[length-1]=0;
+			name[length-2]=0;
+			sum=0;
+			i=0;
+			while(name[i]!=0)
+			{
+				sum+=name[i++];
+			}
+			final=0;
+			hash=sum%HASH_SIZE;
+			for(i=0;i<4;i++)
+			{
+				final+=hash_table[hash][i];
+			}
+			if((final==4)&&(shown[hash]==0))
+			{
+				printf("\n%s",name);
+				shown[hash]=1;
+			}
+			else if(shown[hash]==0)
+			{
+				printf("\n%s (incomplete)",name);
+				shown[hash]=1;
+			}
+		}
+	}
+	fclose(fptr);
+}
+
+uint8_t simple_receive_file(uint8_t server_ID)
+{
+	FILE* fptr;
+	int32_t data_bytes=1,file_size=0;
+	uint8_t receiver_ready=1;
+	uint8_t temp[20];
+	//printf("\npath=%s",temp_filename);
+        bzero(buffer, sizeof(buffer));
+	bzero(temp,20);
+	data_bytes = write(web_socket[server_ID],&receiver_ready,sizeof(receiver_ready));
+        data_bytes = read(web_socket[server_ID],&file_size,sizeof(file_size));
+	data_bytes = write(web_socket[server_ID],&receiver_ready,sizeof(receiver_ready));
+	data_bytes = read(web_socket[server_ID],temp,20);
+	data_bytes = write(web_socket[server_ID],&receiver_ready,sizeof(receiver_ready));
+	fptr = fopen(temp, "w");
+	printf("\nFile size to be received = %d",file_size);
+	data_bytes = read(web_socket[server_ID],buffer,file_size);
+	if(data_bytes==file_size)
+	{
+		printf("\nFile size matched filename=%s",temp);
+		fwrite(buffer, 1, data_bytes, fptr);
+	}
+	fclose(fptr);
+	return data_bytes;
 }
 
 uint8_t send_file(uint8_t* split_filename,uint8_t server_ID)

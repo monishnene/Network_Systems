@@ -73,5 +73,7 @@ uint8_t search_str(uint8_t* haystack,uint8_t* needle);
 uint8_t file_extension_check(uint8_t* fname, uint8_t* extension);
 uint8_t receive_file();
 uint8_t act_server(commands command);
+uint8_t simple_send_file(uint8_t* split_filename);
+int32_t list_creation();
 uint8_t send_file();
 #endif
