@@ -102,8 +102,6 @@ void *connection_handler(void *socket_desc)
    	sock = *(int*)socket_desc;
     	int32_t read_size,n=0;
     	uint8_t command=0,response=0;
-    	int8_t username[20];
-    	int8_t password[20];
     	int8_t subfolder[20];
 	int8_t mkdir_str[20];
     	uint8_t client_message[CLIENT_MESSAGE_SIZE],server_response[CLIENT_MESSAGE_SIZE];

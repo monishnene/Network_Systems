@@ -127,7 +127,9 @@ int32_t merge_file()
 {
 	int32_t data_bytes=0,n=0,eof_check=0,file_size=0,split[5];
 	uint8_t temp_filename[20],i=0;
-	FILE* fptr=fopen("merge_test", "w");
+	sprintf(temp_filename,"Get_%s",filename);
+	printf("\nMerging received files into %s",temp_filename);
+	FILE* fptr=fopen(temp_filename, "w");
 	FILE* split_fptr;
 	for(i=0;i<TOTAL_SERVERS;i++)
 	{	
@@ -135,11 +137,18 @@ int32_t merge_file()
 		bzero(temp_filename,20);
 		sprintf(temp_filename,"%s.%d",filename,i+1);
 		split_fptr = fopen(temp_filename, "r");
+		if(split_fptr == NULL)
+		{
+			printf("\nIncompleted files for merging into %s",filename);
+			printf("\nFile %s is missing",temp_filename);
+			fclose(fptr);
+			return 0;
+		}
 		fseek(split_fptr,0,SEEK_END);
 		file_size=ftell(split_fptr);
 		fseek(split_fptr,0,SEEK_SET);
 		n=fread(buffer,1,file_size,split_fptr);
-		printf("\nmerge filename = %s",temp_filename);
+		//printf("\nmerge filename = %s",temp_filename);
 		fwrite(buffer, 1, file_size,fptr);
 		fclose(split_fptr);
 	}	
@@ -153,15 +162,49 @@ int32_t merge_file()
 uint8_t act_client(commands command)
 {
 	int32_t error_check=0,n=0;
-	uint8_t i=0,hash_value=0;
+	uint8_t i=0,hash_value=0,file_counter=0,receiver_ready=1,file_present=0,j=0;
 	uint8_t temp_filename[20];
-	switch(command)
+	for(i=0;i<TOTAL_SERVERS;i++)
 	{
+		read(web_socket[i],&receiver_ready,sizeof(receiver_ready));
+	}
+	switch(command)
+	{		
 		case get:
 		{
 			for(i=0;i<TOTAL_SERVERS;i++)
 			{
-				//error_check=receive_file(i);
+				sprintf(temp_filename,"%s.%d",filename,i+1);
+				for(j=0;j<TOTAL_SERVERS;j++)
+				{
+					printf("\nTrying to get file %s from server %d",temp_filename,j+1);
+					write(web_socket[j],&receiver_ready,sizeof(receiver_ready));
+					read(web_socket[j],&receiver_ready,sizeof(receiver_ready));
+					write(web_socket[j],temp_filename,20);
+					read(web_socket[j],&file_present,sizeof(file_present));
+					if(file_present)
+					{
+						printf("\nReceving file %s from server %d",temp_filename,j+1);
+						file_present=0;
+						error_check=receive_file(temp_filename,j);
+						break;
+					}
+					else
+					{
+						printf("\nFile %s not present with server %d",temp_filename,j+1);
+					}
+				}
+			}
+			receiver_ready=0;
+			for(i=0;i<TOTAL_SERVERS;i++)
+			{
+				write(web_socket[i],&receiver_ready,sizeof(receiver_ready));
+			}
+			merge_file();
+			for(i=0;i<TOTAL_SERVERS;i++)
+			{
+				sprintf(temp_filename,"%s.%d",filename,i+1);
+				remove(temp_filename);
 			}
 			break;
 		}
@@ -232,27 +275,22 @@ uint8_t send_file(uint8_t* split_filename,uint8_t server_ID)
 	return file_size;
 }
 
-uint8_t receive_file()
+uint8_t receive_file(uint8_t* temp_filename,uint8_t server_ID)
 {
 	FILE* fptr;
-	int32_t data_bytes=1;
+	int32_t data_bytes=1,file_size=0;
 	uint8_t receiver_ready=1;
-	uint8_t temp_filename[PATH_SIZE],temp[20];
-	//printf("\npath=%s",temp_filename);
         bzero(buffer, sizeof(buffer));
-	bzero(temp,20);
-	data_bytes = write(sock,&receiver_ready,sizeof(receiver_ready));
-        data_bytes = read(sock,&file_size,sizeof(file_size));
-	data_bytes = write(sock,&receiver_ready,sizeof(receiver_ready));
-	data_bytes = read(sock,temp,20);
-	data_bytes = write(sock,&receiver_ready,sizeof(receiver_ready));
-	sprintf(temp_filename,"%s%s",path,temp);
+	data_bytes = write(web_socket[server_ID],&receiver_ready,sizeof(receiver_ready));
+        data_bytes = read(web_socket[server_ID],&file_size,sizeof(file_size));
+	printf("\nReceiving File = %s from server %d",temp_filename,server_ID+1);
+	data_bytes = write(web_socket[server_ID],&receiver_ready,sizeof(receiver_ready));
 	fptr = fopen(temp_filename, "w");
 	printf("\nFile size to be received = %d",file_size);
-	data_bytes = read(sock,buffer,file_size);
+	data_bytes = read(web_socket[server_ID],buffer,file_size);
 	if(data_bytes==file_size)
 	{
-		printf("\nFile size matched filename=%s",temp_filename);
+		printf("\nFile %s received from server %d",temp_filename,server_ID+1);
 		fwrite(buffer, 1, data_bytes, fptr);
 	}
 	fclose(fptr);
