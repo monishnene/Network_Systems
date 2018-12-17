@@ -3,7 +3,7 @@
  * Network Systems CSCI 5273 Programming Assignment 4
  * Author: Monish Nene
  * Date: 12/09/2018
- * @brief This file has the main loop for the DFC
+ * @brief This file has the main loop for the DFS Client
  * Application Distributed file system
 ***********************************************************************/
 #include "dfc_support.h"
@@ -13,7 +13,7 @@
  * @brief main
  * This funtion has the initialization and main loop with switch case for udp client
  * @param argc
- * @param argv localhost and portno
+ * @param argv conf file and sub folder
 ***********************************************************************/
 int32_t main(int32_t argc, uint8_t **argv)
 {
@@ -47,7 +47,7 @@ int32_t main(int32_t argc, uint8_t **argv)
 	struct sockaddr_in server[TOTAL_SERVERS];
 	int32_t read_size=0,n=0;
 	uint8_t i=0,authorization[TOTAL_SERVERS],authorization_check=0;
-	uint8_t client_input[CLIENT_MESSAGE_SIZE],server_response[CLIENT_MESSAGE_SIZE];	
+	uint8_t client_input[CLIENT_MESSAGE_SIZE],server_response[CLIENT_MESSAGE_SIZE];
     	commands command_caught;
 	for(i=0;i<TOTAL_SERVERS;i++)
 	{
@@ -80,7 +80,7 @@ int32_t main(int32_t argc, uint8_t **argv)
 	}
 	printf("\nauthorization_check = %d",authorization_check);
 	if(authorization_check==TOTAL_SERVERS*approved)
-	{		
+	{
 		printf("\nAuthorization Successful");
 		while(1)
 		{
@@ -91,9 +91,9 @@ int32_t main(int32_t argc, uint8_t **argv)
 			printf("\nInput:%s Command Caught = %d, filename = %s",client_input,command_caught,filename);
 			for(i=0;i<TOTAL_SERVERS;i++)
 			{
-				write(web_socket[i], client_input, strlen(client_input));	
+				write(web_socket[i], client_input, strlen(client_input));
 			}
-			act_client(command_caught);	
+			act_client(command_caught);
 		}
 	}
 	else if(authorization_check==TOTAL_SERVERS*user_not_found)

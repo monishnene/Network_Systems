@@ -1,10 +1,10 @@
 /***********************************************************************
- * tcp_server.c
- * Network Systems CSCI 5273 Programming Assignment 2
+ * dfs.c
+ * Network Systems CSCI 5273 Programming Assignment 4
  * Author: Monish Nene
- * Date: 10/09/2018
- * @brief This file has main functions for the server
- * Application file transfer using TCP protocol
+ * Date: 12/09/2018
+ * @brief This file has the main loop for the DFS server
+ * Application Distributed file system
 ***********************************************************************/
 #include<stdio.h>
 #include<string.h>    //strlen
@@ -18,6 +18,11 @@
 //the thread function
 void *connection_handler(void *);
 
+/***********************************************************************
+ * main()
+ * @param Port number to be used for proxy configuration
+ * @brief This function has browser socket creation, process fork and pthread join
+ **********************************************************************/
 int main(int argc , char *argv[])
 {
    	int socket_desc , client_sock , c , *new_sock;
@@ -93,9 +98,12 @@ int main(int argc , char *argv[])
     	return 0;
 }
 
-/*
- * This will handle connection for each client
- * */
+
+/***********************************************************************
+ * connection_handler()
+ * @param Browser socket pointer
+ * @brief This function has connection handler and loop for server
+ **********************************************************************/
 void *connection_handler(void *socket_desc)
 {
     	//Get the socket descriptor
@@ -130,7 +138,7 @@ void *connection_handler(void *socket_desc)
     	}
     	//Receive a message from client
     	while(1)
-    	{	
+    	{
 		bzero(client_message , CLIENT_MESSAGE_SIZE);
 		read_size = read(sock,client_message,CLIENT_MESSAGE_SIZE);
 		if(read_size<=0)
@@ -139,10 +147,10 @@ void *connection_handler(void *socket_desc)
 		}
 		command_caught=command_catch(client_message);
 		//if(command_caught > 0)
-		{		
+		{
 			printf("\nInput:%s Command Caught = %d",client_message,command_caught);
 			act_server(command_caught);
-		} 		
+		}
 		bzero(client_message , CLIENT_MESSAGE_SIZE);
 		printf("\nServer %d ready for next command",server_id);
     	}

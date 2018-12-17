@@ -1,10 +1,10 @@
 /***********************************************************************
- * client_support.c
- * Network Systems CSCI 5273 Programming Assignment 1
+ * dfc_support.c
+ * Network Systems CSCI 5273 Programming Assignment 4
  * Author: Monish Nene
- * Date: 09/09/2018
- * @brief This file has supporting functions for the client
- * Application file transfer using UDP protocol
+ * Date: 12/09/2018
+ * @brief This file has the functions for the DFS Client
+ * Application Distributed file system
 ***********************************************************************/
 #include "dfc_support.h"
 /**
@@ -16,14 +16,19 @@ void error(uint8_t *msg)
     	exit(0);
 }
 
+/***********************************************************************
+ * @brief remove_newline_char()
+ * This funtion is used to remove newline character from a string
+ * @param pointer to the string to be processed
+***********************************************************************/
 void remove_newline_char(int8_t* str)
 {
 	while(*(str)!=0)
 	{
 		if(*(str)=='\n')
 		{
-			*(str)=0;		
-			return;		
+			*(str)=0;
+			return;
 		}
 		str++;
 	}
@@ -38,7 +43,7 @@ void remove_newline_char(int8_t* str)
 ***********************************************************************/
 uint8_t command_catch(uint8_t* input)
 {
-	uint8_t command_caught=0,i=0;	
+	uint8_t command_caught=0,i=0;
         bzero(filename,20);
 	if(!strncmp(input,get_str,strlen(get_str)))
 	{
@@ -74,6 +79,11 @@ uint8_t command_catch(uint8_t* input)
 	return command_caught;
 }
 
+/***********************************************************************
+ * @brief md5sum_hash()
+ * This funtion is used to implement md5sum on a file and get a hash value
+ * @return hash value
+***********************************************************************/
 uint8_t md5sum_hash()
 {
 	uint8_t temp_command[40],hash_sum[PACKET_SIZE],i=0;
@@ -90,6 +100,11 @@ uint8_t md5sum_hash()
 	return i;
 }
 
+/***********************************************************************
+ * @brief split_file()
+ * This funtion is used to split a file into 4 parts to send toservers.
+ * @return error check
+***********************************************************************/
 int32_t split_file()
 {
 	int32_t data_bytes=0,n=0,eof_check=0,file_size=0,split[5];
@@ -123,6 +138,11 @@ int32_t split_file()
 	return file_size;
 }
 
+/***********************************************************************
+ * @brief merge_file()
+ * This funtion is used to merge 4 parts of a file received from servers.
+ * @return error check
+***********************************************************************/
 int32_t merge_file()
 {
 	int32_t data_bytes=0,n=0,eof_check=0,file_size=0,split[5];
@@ -132,7 +152,7 @@ int32_t merge_file()
 	FILE* fptr=fopen(temp_filename, "w");
 	FILE* split_fptr;
 	for(i=0;i<TOTAL_SERVERS;i++)
-	{	
+	{
 		bzero(buffer,BUFFER_SIZE);
 		bzero(temp_filename,20);
 		sprintf(temp_filename,"%s.%d",filename,i+1);
@@ -152,7 +172,7 @@ int32_t merge_file()
 		fwrite(buffer, 1, file_size,fptr);
 		fclose(split_fptr);
 	}
-	
+
 	for(i=0;i<TOTAL_SERVERS;i++)
 	{
 		sprintf(temp_filename,"%s.%d",filename,i+1);
@@ -165,6 +185,12 @@ int32_t merge_file()
 	return file_size;
 }
 
+/***********************************************************************
+ * @brief act_client()
+ * This funtion is used to take action according to command.
+ * @param command to be executed
+ * @return error check
+***********************************************************************/
 uint8_t act_client(commands command)
 {
 	int32_t error_check=0,n=0;
@@ -175,7 +201,7 @@ uint8_t act_client(commands command)
 		read(web_socket[i],&receiver_ready,sizeof(receiver_ready));
 	}
 	switch(command)
-	{		
+	{
 		case get:
 		{
 			for(i=0;i<TOTAL_SERVERS;i++)
@@ -225,7 +251,7 @@ uint8_t act_client(commands command)
 				error_check=send_file(temp_filename,i);
 				sprintf(temp_filename,"%s.%d",filename,pair_table[hash_value][i][1]);
 				error_check=send_file(temp_filename,i);
-			}		
+			}
 			if(!error_check)
 			{
 				printf("\nFile %s is not found.\n",filename);
@@ -256,13 +282,17 @@ uint8_t act_client(commands command)
 	return error_check;
 }
 
+/***********************************************************************
+ * @brief list_analysis()
+ * This funtion is used for analysis of list file
+***********************************************************************/
 void list_analysis()
 {
-	FILE* fptr;	
+	FILE* fptr;
 	uint32_t i=0,sum=0,final=0,hash=0,j=0;
 	uint8_t hash_table[HASH_SIZE][4];
 	uint8_t shown[HASH_SIZE];
-    	int8_t name[20],number=0,temp[20]; 
+    	int8_t name[20],number=0,temp[20];
    	int8_t* line=NULL;
     	size_t length;
 	for(i=0;i<HASH_SIZE;i++)
@@ -329,6 +359,12 @@ void list_analysis()
 	fclose(fptr);
 }
 
+/***********************************************************************
+ * @brief simple_receive_file()
+ * This funtion is used to receive file from server
+ * @param server ID from whom the file is to be received
+ * @return error check
+***********************************************************************/
 uint8_t simple_receive_file(uint8_t server_ID)
 {
 	FILE* fptr;
@@ -355,8 +391,15 @@ uint8_t simple_receive_file(uint8_t server_ID)
 	return data_bytes;
 }
 
+/***********************************************************************
+ * @brief  send_file()
+ * This funtion is used to send file to server
+ * @param file to be sent
+ * @param server ID to whom the file is to be sent
+ * @return error check
+***********************************************************************/
 uint8_t send_file(uint8_t* split_filename,uint8_t server_ID)
-{	
+{
 	int32_t data_bytes=0,n=0,eof_check=0,file_size=0;
 	uint8_t data[PACKET_SIZE],i=0,receiver_ready=0;
 	FILE* fptr=fopen(split_filename, "r");
@@ -372,7 +415,7 @@ uint8_t send_file(uint8_t* split_filename,uint8_t server_ID)
 	n=fread(buffer,1,file_size,fptr);
 	if(n==file_size)
 	{
-		printf("\nFile %s with %d bytes sent to server %d",split_filename,file_size,server_ID+1);	
+		printf("\nFile %s with %d bytes sent to server %d",split_filename,file_size,server_ID+1);
 		write(web_socket[server_ID],buffer,file_size);
 	}
 	else
@@ -383,6 +426,13 @@ uint8_t send_file(uint8_t* split_filename,uint8_t server_ID)
 	return file_size;
 }
 
+/***********************************************************************
+ * @brief receive_file()
+ * This funtion is used to receive file from server
+ * @param filename to be saved
+ * @param server ID from whom the file is to be received
+ * @return error check
+***********************************************************************/
 uint8_t receive_file(uint8_t* temp_filename,uint8_t server_ID)
 {
 	FILE* fptr;

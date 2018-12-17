@@ -1,10 +1,10 @@
 /***********************************************************************
- * server_support.c
- * Network Systems CSCI 5273 Programming Assignment 2
+ * dfc_support.c
+ * Network Systems CSCI 5273 Programming Assignment 4
  * Author: Monish Nene
- * Date: 10/09/2018
- * @brief This file has supporting functions for the server
- * Application file transfer using TCP protocol
+ * Date: 12/09/2018
+ * @brief This file has the functions for the DFS Server
+ * Application Distributed file system
 ***********************************************************************/
 #include "dfs_support.h"
 /**
@@ -16,10 +16,17 @@ void error(uint8_t *msg)
     	exit(0);
 }
 
+/***********************************************************************
+ * @brief authorization_check()
+ * This funtion is used for authorization.
+ * @param username sent by client
+ * @param password sent by client
+ * @return signals for authorization result
+***********************************************************************/
 short_signals authorization_check(int8_t *username, int8_t *password)
 {
-    FILE* fptr;	
-    int8_t temp_password[20]; 
+    FILE* fptr;
+    int8_t temp_password[20];
     int8_t* line=NULL;
     size_t length;
     if((fptr = fopen(conf_filename, "r")) != NULL)
@@ -111,7 +118,7 @@ uint8_t search_str(uint8_t* haystack,uint8_t* needle)
 ***********************************************************************/
 uint8_t command_catch(uint8_t* input)
 {
-	uint8_t command_caught=0,i=0;		
+	uint8_t command_caught=0,i=0;
         bzero(filename,20);
 	if(!strncmp(input,get_str,strlen(get_str)))
 	{
@@ -147,7 +154,12 @@ uint8_t command_catch(uint8_t* input)
 	return command_caught;
 }
 
-
+/***********************************************************************
+ * @brief act_server()
+ * This funtion is used to take action according to command.
+ * @param command to be executed
+ * @return error check
+***********************************************************************/
 uint8_t act_server(commands command)
 {
 	int32_t error_check=0;
@@ -158,20 +170,20 @@ uint8_t act_server(commands command)
 		case put:
 		{
 			error_check=receive_file();
-			error_check=receive_file();			
+			error_check=receive_file();
 			break;
 		}
 		case get:
 		{
 			while(1)
-			{			
+			{
 				read(sock,&receiver_ready,sizeof(receiver_ready));
 				if(receiver_ready == 0)
 				{
 					break;
 				}
 				else
-				{	
+				{
 					bzero(filename,20);
 					write(sock,&receiver_ready,sizeof(receiver_ready));
 					read(sock,filename,20);
@@ -186,7 +198,7 @@ uint8_t act_server(commands command)
 			break;
 		}
 		case list:
-		{	
+		{
 			error_check=list_creation();
 			break;
 		}
@@ -198,6 +210,11 @@ uint8_t act_server(commands command)
 	return error_check;
 }
 
+/***********************************************************************
+ * @brief list_creation()
+ * This funtion is used to implement listing operation
+ * @return error check
+***********************************************************************/
 int32_t list_creation()
 {
 	uint8_t ls_command[PACKET_SIZE],ls_file[10],receiver_ready=0;
@@ -212,8 +229,14 @@ int32_t list_creation()
 	return file_size;
 }
 
+/***********************************************************************
+ * @brief  simple_send_file()
+ * This funtion is used to send a file to client
+ * @param name of file to be sent
+ * @return error check
+***********************************************************************/
 uint8_t simple_send_file(uint8_t* split_filename)
-{	
+{
 	int32_t data_bytes=0,n=0,eof_check=0,file_size=0;
 	uint8_t data[PACKET_SIZE],i=0,receiver_ready=0;
 	FILE* fptr=fopen(split_filename, "r");
@@ -229,7 +252,7 @@ uint8_t simple_send_file(uint8_t* split_filename)
 	n=fread(buffer,1,file_size,fptr);
 	if(n==file_size)
 	{
-		printf("\nFile %s with %d bytes sent to server %d",split_filename,file_size,server_id);	
+		printf("\nFile %s with %d bytes sent to server %d",split_filename,file_size,server_id);
 		write(sock,buffer,file_size);
 	}
 	else
@@ -240,15 +263,25 @@ uint8_t simple_send_file(uint8_t* split_filename)
 	return file_size;
 }
 
+/***********************************************************************
+ * @brief folder_creation()
+ * This funtion is used to create a folder
+ * @return error check
+***********************************************************************/
 uint8_t folder_creation()
 {
 	int8_t mkdir_str[20];
-	sprintf(mkdir_str,"mkdir DFS%d/%s/%s/",server_id,username,filename);	
+	sprintf(mkdir_str,"mkdir DFS%d/%s/%s/",server_id,username,filename);
 	printf("\nFolder created by command %s",mkdir_str);
 	system(mkdir_str);
 	return 1;
 }
 
+/***********************************************************************
+ * @brief receive_file()
+ * This funtion is used to receive file from client
+ * @return error check
+***********************************************************************/
 uint8_t receive_file()
 {
 	FILE* fptr;
@@ -276,8 +309,13 @@ uint8_t receive_file()
 	return data_bytes;
 }
 
+/***********************************************************************
+ * @brief  send_file()
+ * This funtion is used to send file to client
+ * @return error check
+***********************************************************************/
 uint8_t send_file()
-{	
+{
 	FILE* fptr;
 	uint8_t temp_filename[50],temp[20];
 	int32_t n=0,eof_check=0,file_size=0;
@@ -305,8 +343,8 @@ uint8_t send_file()
 	bzero(buffer,BUFFER_SIZE);
 	printf("\nReading file %s of size %d",temp,file_size);
 	n=fread(buffer,1,file_size,fptr);
-	n=write(sock,buffer,file_size);			
-	printf("\nFile %s with %d bytes sent by server %d",temp,file_size,server_id+1);	
+	n=write(sock,buffer,file_size);
+	printf("\nFile %s with %d bytes sent by server %d",temp,file_size,server_id+1);
 	fclose(fptr);
 	return file_size;
 }
