@@ -49,6 +49,7 @@ int32_t main(int32_t argc, uint8_t **argv)
 	uint8_t i=0,authorization[TOTAL_SERVERS],authorization_check=0;
 	uint8_t client_input[CLIENT_MESSAGE_SIZE],server_response[CLIENT_MESSAGE_SIZE];
     	commands command_caught;
+	bzero(server_status_on,TOTAL_SERVERS);
 	for(i=0;i<TOTAL_SERVERS;i++)
 	{
 		server[i].sin_addr.s_addr = INADDR_ANY;
@@ -72,17 +73,36 @@ int32_t main(int32_t argc, uint8_t **argv)
 		sprintf(configuration_str,"%d %s %s %s",i+1,username,password,argv[2]);
         	send(web_socket[i], configuration_str, strlen(configuration_str), 0);
 		read_size = read(web_socket[i], &authorization[i] , 1);
+		if(authorization[i]==approved)
+		{
+			server_status_on[i]=1;
+			printf("\nAuthorization Successful for Server %d",i+1);
+		}
+		else if(authorization_check==user_not_found)
+		{
+			printf("\nUser ID didn't match for server %d",i+1);
+		}
+		else if(authorization_check==incorrect_password)
+		{
+			printf("\nPassword didn't match for server %d",i+1);
+		}
+		else if(authorization_check==file_not_found)
+		{
+			printf("\nserver %d conf file_not_found,",i+1);
+		}
+		else
+		{
+			printf("\nUnidentified authorization failure for server %d",i+1);
+		}
 	}
 	fclose(fptr);
 	strcpy(key,password);
 	for(i=0;i<TOTAL_SERVERS;i++)
 	{
-		authorization_check+=authorization[i];
+		authorization_check+=server_status_on[i];
 	}
-	printf("\nauthorization_check = %d",authorization_check);
-	if(authorization_check==TOTAL_SERVERS*approved)
+	if(authorization_check>0)
 	{
-		printf("\nAuthorization Successful");
 		while(1)
 		{
 			bzero(client_input, CLIENT_MESSAGE_SIZE);
@@ -92,21 +112,16 @@ int32_t main(int32_t argc, uint8_t **argv)
 			printf("\nInput:%s Command Caught = %d, filename = %s",client_input,command_caught,filename);
 			for(i=0;i<TOTAL_SERVERS;i++)
 			{
-				write(web_socket[i], client_input, strlen(client_input));
+				if(server_status_on[i])
+				{
+					write(web_socket[i], client_input, strlen(client_input));
+				}
 			}
 			act_client(command_caught);
 		}
 	}
-	else if(authorization_check==TOTAL_SERVERS*user_not_found)
-	{
-		printf("\nUser ID didn't match %d",authorization_check);
-	}
-	else if(authorization_check==TOTAL_SERVERS*incorrect_password)
-	{
-		printf("\nPassword didn't match %d",authorization_check);
-	}
 	else
 	{
-		printf("\nUnidentified authorization failure %d",authorization_check);
+		printf("\nNo server is authorized so switching OFF the client.\n");
 	}
 }

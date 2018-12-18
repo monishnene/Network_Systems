@@ -177,7 +177,6 @@ int32_t merge_file()
 		fwrite(buffer, 1, file_size,fptr);
 		fclose(split_fptr);
 	}
-
 	for(i=0;i<TOTAL_SERVERS;i++)
 	{
 		sprintf(temp_filename,"%s.%d",filename,i+1);
@@ -198,46 +197,78 @@ int32_t merge_file()
 ***********************************************************************/
 uint8_t act_client(commands command)
 {
-	int32_t error_check=0,n=0;
-	uint8_t i=0,hash_value=0,file_counter=0,receiver_ready=1,file_present=0,j=0;
+	FILE* fptr;
+	int32_t error_check=0,n=0,split_counter[TOTAL_SERVERS],split_counter_sum=0;
+	uint8_t i=0,hash_value=0,file_counter=0,receiver_ready=1,file_present=0,j=0,k[]="a";
 	uint8_t temp_filename[20];
 	for(i=0;i<TOTAL_SERVERS;i++)
 	{
-		read(web_socket[i],&receiver_ready,sizeof(receiver_ready));
+		if(server_status_on[i])
+		{
+			read(web_socket[i],&receiver_ready,sizeof(receiver_ready));
+		}
 	}
 	switch(command)
 	{
 		case get:
 		{
+			bzero(split_counter,TOTAL_SERVERS);
 			for(i=0;i<TOTAL_SERVERS;i++)
 			{
 				sprintf(temp_filename,"%s.%d",filename,i+1);
 				for(j=0;j<TOTAL_SERVERS;j++)
 				{
-					printf("\nTrying to get file %s from server %d",temp_filename,j+1);
-					write(web_socket[j],&receiver_ready,sizeof(receiver_ready));
-					read(web_socket[j],&receiver_ready,sizeof(receiver_ready));
-					write(web_socket[j],temp_filename,20);
-					read(web_socket[j],&file_present,sizeof(file_present));
-					if(file_present)
+					if(server_status_on[j])
 					{
-						printf("\nReceving file %s from server %d",temp_filename,j+1);
-						file_present=0;
-						error_check=receive_file(temp_filename,j);
-						break;
-					}
-					else
-					{
-						printf("\nFile %s not present with server %d",temp_filename,j+1);
+						printf("\nTrying to get file %s from server %d",temp_filename,j+1);
+						write(web_socket[j],&receiver_ready,sizeof(receiver_ready));
+						read(web_socket[j],&receiver_ready,sizeof(receiver_ready));
+						write(web_socket[j],temp_filename,20);
+						read(web_socket[j],&file_present,sizeof(file_present));
+						if(file_present)
+						{
+							split_counter[i]=1;
+							printf("\nReceving file %s from server %d",temp_filename,j+1);
+							file_present=0;
+							error_check=receive_file(temp_filename,j);
+							break;
+						}
+						else
+						{
+							printf("\nFile %s not present with server %d",temp_filename,j+1);
+						}
 					}
 				}
 			}
 			receiver_ready=0;
 			for(i=0;i<TOTAL_SERVERS;i++)
 			{
-				write(web_socket[i],&receiver_ready,sizeof(receiver_ready));
+				if(server_status_on[i])
+				{
+					write(web_socket[i],&receiver_ready,sizeof(receiver_ready));
+				}
 			}
-			merge_file();
+			split_counter_sum=0;
+			for(i=0;i<TOTAL_SERVERS;i++)
+			{
+				split_counter_sum+=split_counter[i];
+			}
+			if(split_counter_sum==TOTAL_SERVERS)
+			{
+				merge_file();
+			}
+			else
+			{
+				printf("\nFiles can't be merged as split files ");
+				for(i=0;i<TOTAL_SERVERS;i++)
+				{
+					if(split_counter[i]==0)
+					{
+						printf("%s.%d ",filename,i+1);
+					}
+				}
+				printf("are missing.");
+			}
 			for(i=0;i<TOTAL_SERVERS;i++)
 			{
 				sprintf(temp_filename,"%s.%d",filename,i+1);
@@ -252,14 +283,22 @@ uint8_t act_client(commands command)
 			printf("\nHash value = %d",hash_value);
 			for(i=0;i<TOTAL_SERVERS;i++)
 			{
-				sprintf(temp_filename,"%s.%d",filename,pair_table[hash_value][i][0]);
-				error_check=send_file(temp_filename,i);
-				sprintf(temp_filename,"%s.%d",filename,pair_table[hash_value][i][1]);
-				error_check=send_file(temp_filename,i);
+				if(server_status_on[i])
+				{
+					sprintf(temp_filename,"%s.%d",filename,pair_table[hash_value][i][0]);
+					error_check=send_file(temp_filename,i);
+					sprintf(temp_filename,"%s.%d",filename,pair_table[hash_value][i][1]);
+					error_check=send_file(temp_filename,i);
+				}
 			}
 			if(!error_check)
 			{
 				printf("\nFile %s is not found.\n",filename);
+			}
+			for(i=0;i<TOTAL_SERVERS;i++)
+			{
+				sprintf(temp_filename,"%s.%d",filename,i+1);
+				remove(temp_filename);
 			}
 			break;
 		}
@@ -271,7 +310,18 @@ uint8_t act_client(commands command)
 		{
 			for(i=0;i<TOTAL_SERVERS;i++)
 			{
-				error_check=simple_receive_file(i);
+				if(server_status_on[i])
+				{
+					error_check=simple_receive_file(i);
+					printf("\nls.txt.%d Received",i+1);
+				}
+				else
+				{
+					sprintf(temp_filename,"ls.txt.%d",i+1);					
+					printf("\nCreating dummy ls.txt.%d",i+1);
+					fptr = fopen(temp_filename, "w");
+					fclose(fptr);
+				}			
 			}
 			bzero(filename,20);
 			sprintf(filename,"ls.txt");

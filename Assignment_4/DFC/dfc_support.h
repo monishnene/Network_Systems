@@ -56,6 +56,7 @@ uint8_t foldername[20];
 uint8_t key[20];
 uint8_t junk[10];
 uint8_t path[DATA_SIZE];
+uint8_t server_status_on[TOTAL_SERVERS];
 static uint8_t server_id=0;
 static uint8_t pair_table[4][4][2]=	{{	{1,2},	{2,3},	{3,4},	{4,1}	},
 /*hashvalue,serve no.,fileno.*/		{	{4,1},	{1,2},	{2,3},	{3,4}	},

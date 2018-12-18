@@ -67,7 +67,7 @@ int32_t file_size;
 commands method;
 struct timeval timer;
 
-short_signals authorization_check(int8_t *username, int8_t *password);
+int8_t authorization_check(int8_t *username, int8_t *password);
 uint8_t command_catch(uint8_t* input);
 void error(uint8_t *msg);
 uint8_t folder_creation();

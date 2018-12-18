@@ -23,42 +23,41 @@ void error(uint8_t *msg)
  * @param password sent by client
  * @return signals for authorization result
 ***********************************************************************/
-short_signals authorization_check(int8_t *username, int8_t *password)
+int8_t authorization_check(int8_t *username, int8_t *password)
 {
     FILE* fptr;
-    int8_t temp_password[20];
+    int8_t temp_password[20],status=user_not_found;
     int8_t* line=NULL;
     size_t length;
     if((fptr = fopen(conf_filename, "r")) != NULL)
     {
         while((getline(&line, &length, fptr)) != -1)
         {
-	    //printf("\n line = %s",line);
+	    printf("\nline = %s",line);
             if(strstr(line, username))
             {
                 sscanf(line, "%s %s",username,temp_password);
-		//printf("\n username = %s,temp_password = %s,password = %s",username,temp_password,password);
+		//printf("\nusername = %s,temp_password = %s,password = %s",username,temp_password,password);
                 if(strcmp(temp_password,password))
 		{
-        		fclose(fptr);
-			return incorrect_password;
+			status=incorrect_password;
+			break;
 		}
 		else
 		{
-			fclose(fptr);
-			return approved;
+			status=approved;
+			break;
 		}
             }
-	    fclose(fptr);
-	    return user_not_found;
-        }
+        }	
     }
     else
     {
-	printf("\n%s conf file not found",conf_filename);
-	fclose(fptr);
-	return file_not_found;
+	//printf("\n%s conf file not found",conf_filename);
+	status = file_not_found; 
     }
+    //printf("\nstatus=%d",status);
+    return status;
 }
 
 
@@ -247,7 +246,7 @@ uint8_t simple_send_file(uint8_t* split_filename)
 	n=fread(buffer,1,file_size,fptr);
 	if(n==file_size)
 	{
-		printf("\nFile %s with %d bytes sent to server %d",split_filename,file_size,server_id);
+		//printf("\nFile %s with %d bytes sent to server %d",split_filename,file_size,server_id);
 		write(sock,buffer,file_size);
 	}
 	else
