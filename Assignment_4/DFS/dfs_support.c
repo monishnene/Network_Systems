@@ -118,38 +118,33 @@ uint8_t search_str(uint8_t* haystack,uint8_t* needle)
 ***********************************************************************/
 uint8_t command_catch(uint8_t* input)
 {
-	uint8_t command_caught=0,i=0;
+	uint8_t command_caught=0,i=0;	
         bzero(filename,20);
+	bzero(foldername,20);
 	if(!strncmp(input,get_str,strlen(get_str)))
 	{
 		command_caught=get;
-		input += strlen(get_str)+1;
-		while(*(input)!=NEW_LINE)
-		{
-			filename[i++]=*(input++);
-		}
+		sscanf(input,"%s %s %s",junk,filename,foldername);
 	}
 	else if(!strncmp(input,put_str,strlen(put_str)))
 	{
 		command_caught=put;
-		input += strlen(put_str)+1;
-		while(*(input)!=NEW_LINE)
-		{
-			filename[i++]=*(input++);
-		}
+		sscanf(input,"%s %s %s",junk,filename,foldername);
 	}
 	else if(!strncmp(input,ls_str,strlen(ls_str)))
 	{
 		command_caught=list;
+		sscanf(input,"%s %s",junk,foldername);
 	}
 	else if(!strncmp(input,mkdir_str,strlen(mkdir_str)))
 	{
 		command_caught=mkdir;
-		input += strlen(mkdir_str)+1;
-		while(*(input)!=NEW_LINE)
-		{
-			filename[i++]=*(input++);
-		}
+		sscanf(input,"%s %s",junk,foldername);
+	}
+	if(strlen(foldername)>0)
+	{
+		printf("\nSwitching to folder %s",foldername);
+		i=folder_creation();
 	}
 	return command_caught;
 }
@@ -194,7 +189,6 @@ uint8_t act_server(commands command)
 		}
 		case mkdir:
 		{
-			error_check=folder_creation();
 			break;
 		}
 		case list:
@@ -223,6 +217,7 @@ int32_t list_creation()
 	bzero(ls_file,10);
 	sprintf(ls_file,"ls.txt.%d",server_id);
 	sprintf(ls_command,"ls %s>>%s",path,ls_file);
+	printf("\nList command = %s",ls_command);
 	system(ls_command);
 	file_size=simple_send_file(ls_file);
 	remove(ls_file);
@@ -271,7 +266,8 @@ uint8_t simple_send_file(uint8_t* split_filename)
 uint8_t folder_creation()
 {
 	int8_t mkdir_str[20];
-	sprintf(mkdir_str,"mkdir DFS%d/%s/%s/",server_id,username,filename);
+	sprintf(path,"DFS%d/%s/%s/",server_id,username,foldername);
+	sprintf(mkdir_str,"mkdir %s",path);
 	printf("\nFolder created by command %s",mkdir_str);
 	system(mkdir_str);
 	return 1;

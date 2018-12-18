@@ -58,6 +58,8 @@ uint8_t buffer[BUFFER_SIZE];
 static uint8_t test_str[]="\nWelcome to Monish Nene's Web Server";
 static uint8_t conf_filename[]="dfs.conf";
 uint8_t username[20];
+uint8_t foldername[20];
+uint8_t junk[10];
 uint8_t password[20];
 uint8_t path[PATH_SIZE];
 uint8_t filename[20];

@@ -43,38 +43,28 @@ void remove_newline_char(int8_t* str)
 ***********************************************************************/
 uint8_t command_catch(uint8_t* input)
 {
-	uint8_t command_caught=0,i=0;
+	uint8_t command_caught=0,i=0;	
         bzero(filename,20);
+        bzero(foldername,20);
 	if(!strncmp(input,get_str,strlen(get_str)))
 	{
 		command_caught=get;
-		input += strlen(get_str)+1;
-		while(*(input)!=NEW_LINE)
-		{
-			filename[i++]=*(input++);
-		}
+		sscanf(input,"%s %s %s",junk,filename,foldername);
 	}
 	else if(!strncmp(input,put_str,strlen(put_str)))
 	{
 		command_caught=put;
-		input += strlen(put_str)+1;
-		while(*(input)!=NEW_LINE)
-		{
-			filename[i++]=*(input++);
-		}
+		sscanf(input,"%s %s %s",junk,filename,foldername);
 	}
 	else if(!strncmp(input,ls_str,strlen(ls_str)))
 	{
 		command_caught=list;
+		sscanf(input,"%s %s",junk,foldername);
 	}
 	else if(!strncmp(input,mkdir_str,strlen(mkdir_str)))
 	{
 		command_caught=mkdir;
-		input += strlen(mkdir_str)+1;
-		while(*(input)!=NEW_LINE)
-		{
-			filename[i++]=*(input++);
-		}
+		sscanf(input,"%s %s",junk,foldername);
 	}
 	return command_caught;
 }

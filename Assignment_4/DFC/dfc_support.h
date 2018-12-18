@@ -52,6 +52,8 @@ static uint8_t EOF_message[]="End_of_File";
 uint8_t configuration_str[CLIENT_MESSAGE_SIZE];
 uint8_t configuration_response[10];
 uint8_t filename[20];
+uint8_t foldername[20];
+uint8_t junk[10];
 uint8_t path[DATA_SIZE];
 static uint8_t server_id=0;
 static uint8_t pair_table[4][4][2]=	{{	{1,2},	{2,3},	{3,4},	{4,1}	},
