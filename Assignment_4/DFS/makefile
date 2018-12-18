@@ -57,10 +57,10 @@ build:	dfs.elf
 compile-all:	$(objects)
 
 run:
-	./dfs.elf 8620 &
-	./dfs.elf 8621 &
-	./dfs.elf 8622 &
-	./dfs.elf 8623 &
+	./dfs.elf 8630 &
+	./dfs.elf 8631 &
+	./dfs.elf 8632 &
+	./dfs.elf 8633 &
 
 clean :
 	rm	-f	*.o	*.s	*.i	*.o	*.d	*.elf *.swp
