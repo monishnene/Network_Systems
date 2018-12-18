@@ -16,6 +16,21 @@ void error(uint8_t *msg)
     	exit(0);
 }
 
+uint8_t encryption_xor(uint8_t* data,int32_t size)
+{	
+	int32_t i=0,j=0;
+	for(i=0;i<size;i++)
+	{
+		if(key[j]==0)
+		{
+			j=0;
+		}
+		data[i] ^= key[j++];
+	}
+	return i;
+}
+
+
 /***********************************************************************
  * @brief remove_newline_char()
  * This funtion is used to remove newline character from a string
@@ -406,6 +421,7 @@ uint8_t send_file(uint8_t* split_filename,uint8_t server_ID)
 	if(n==file_size)
 	{
 		printf("\nFile %s with %d bytes sent to server %d",split_filename,file_size,server_ID+1);
+		encryption_xor(buffer,file_size);
 		write(web_socket[server_ID],buffer,file_size);
 	}
 	else
@@ -439,6 +455,7 @@ uint8_t receive_file(uint8_t* temp_filename,uint8_t server_ID)
 	if(data_bytes==file_size)
 	{
 		printf("\nFile %s received from server %d",temp_filename,server_ID+1);
+		encryption_xor(buffer,file_size);
 		fwrite(buffer, 1, data_bytes, fptr);
 	}
 	fclose(fptr);

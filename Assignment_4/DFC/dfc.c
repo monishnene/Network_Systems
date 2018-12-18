@@ -74,6 +74,7 @@ int32_t main(int32_t argc, uint8_t **argv)
 		read_size = read(web_socket[i], &authorization[i] , 1);
 	}
 	fclose(fptr);
+	strcpy(key,password);
 	for(i=0;i<TOTAL_SERVERS;i++)
 	{
 		authorization_check+=authorization[i];
