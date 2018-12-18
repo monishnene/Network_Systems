@@ -33,7 +33,7 @@ int8_t authorization_check(int8_t *username, int8_t *password)
     {
         while((getline(&line, &length, fptr)) != -1)
         {
-	    printf("\nline = %s",line);
+	    //printf("\nline = %s",line);
             if(strstr(line, username))
             {
                 sscanf(line, "%s %s",username,temp_password);
@@ -216,7 +216,7 @@ int32_t list_creation()
 	bzero(ls_file,10);
 	sprintf(ls_file,"ls.txt.%d",server_id);
 	sprintf(ls_command,"ls %s>>%s",path,ls_file);
-	printf("\nList command = %s",ls_command);
+	//printf("\nList command = %s",ls_command);
 	system(ls_command);
 	file_size=simple_send_file(ls_file);
 	remove(ls_file);
@@ -297,7 +297,7 @@ uint8_t receive_file()
 	data_bytes = read(sock,buffer,file_size);
 	if(data_bytes==file_size)
 	{
-		printf("\nFile size matched filename=%s",temp_filename);
+		//printf("\nFile size matched filename=%s",temp_filename);
 		fwrite(buffer, 1, data_bytes, fptr);
 	}
 	fclose(fptr);
@@ -317,7 +317,7 @@ uint8_t send_file()
 	uint8_t data[PACKET_SIZE],i=0,file_present=0,receiver_ready=0;
 	bzero(temp_filename,50);
 	sprintf(temp_filename,"%s%s",path,filename);
-	printf("\nServere %d Trying to open file %s",server_id+1,temp_filename);
+	//printf("\nServer %d Trying to open file %s",server_id+1,temp_filename);
 	fptr = fopen(temp_filename, "r");
 	if(fptr != NULL)
 	{
@@ -336,10 +336,10 @@ uint8_t send_file()
 	write(sock,&file_size,sizeof(file_size));
 	n = read(sock,&receiver_ready,sizeof(receiver_ready));
 	bzero(buffer,BUFFER_SIZE);
-	printf("\nReading file %s of size %d",temp,file_size);
+	//printf("\nReading file %s of size %d",temp,file_size);
 	n=fread(buffer,1,file_size,fptr);
 	n=write(sock,buffer,file_size);
-	printf("\nFile %s with %d bytes sent by server %d",temp,file_size,server_id+1);
+	//printf("\nFile %s with %d bytes sent by server %d",temp,file_size,server_id+1);
 	fclose(fptr);
 	return file_size;
 }

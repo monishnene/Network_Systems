@@ -11,6 +11,7 @@
 #include <netdb.h>
 #include <syslog.h>
 
+#define TIMEOUT 1
 #define TOTAL_SERVERS 4
 #define SYSLOG_PRIORITY 100
 #define PACKET_SIZE 32
@@ -38,6 +39,8 @@ typedef enum
 	file_not_found,
 }short_signals;
 
+
+struct timeval timer;
 int32_t sockfd, portno,web_socket[TOTAL_SERVERS];
 uint32_t partner_len;
 struct sockaddr_in partner_addr;

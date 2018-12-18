@@ -113,6 +113,8 @@ void *connection_handler(void *socket_desc)
     	int8_t subfolder[20];
 	int8_t mkdir_str[20];
     	uint8_t client_message[CLIENT_MESSAGE_SIZE],server_response[CLIENT_MESSAGE_SIZE];
+	timer.tv_sec=TIMEOUT;
+        setsockopt(sock,SOL_SOCKET,SO_RCVTIMEO | SO_REUSEADDR | SO_REUSEPORT, (const char*)&timer,sizeof timer);
     	commands command_caught;
     	read_size = recv(sock , client_message , CLIENT_MESSAGE_SIZE , 0);
     	//printf("\nclient to server = %s",client_message);

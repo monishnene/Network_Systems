@@ -48,10 +48,12 @@ int32_t main(int32_t argc, uint8_t **argv)
 	int32_t read_size=0,n=0;
 	uint8_t i=0,authorization[TOTAL_SERVERS],authorization_check=0;
 	uint8_t client_input[CLIENT_MESSAGE_SIZE],server_response[CLIENT_MESSAGE_SIZE];
-    	commands command_caught;
+	timer.tv_sec=TIMEOUT;
+	commands command_caught;
 	bzero(server_status_on,TOTAL_SERVERS);
 	for(i=0;i<TOTAL_SERVERS;i++)
 	{
+		setsockopt(web_socket[i],SOL_SOCKET,SO_RCVTIMEO, (const char*)&timer,sizeof timer);
 		server[i].sin_addr.s_addr = INADDR_ANY;
         	server[i].sin_family = AF_INET;
 		if(getline(&port_no, &length, fptr) == -1)
@@ -67,7 +69,7 @@ int32_t main(int32_t argc, uint8_t **argv)
         	}
         	if((connect(web_socket[i], (struct sockaddr *)&server[i], sizeof(server[i]))) < 0)
         	{
-            		printf("\nError in connecting to socket");
+            		printf("\nServer %d with port no. %d not alive.",i+1,atoi(port_no));
             		continue;
         	}
 		sprintf(configuration_str,"%d %s %s %s",i+1,username,password,argv[2]);
@@ -76,7 +78,7 @@ int32_t main(int32_t argc, uint8_t **argv)
 		if(authorization[i]==approved)
 		{
 			server_status_on[i]=1;
-			printf("\nAuthorization Successful for Server %d",i+1);
+			printf("\nAuthorization Successful for Server %d port no. %d",i+1,atoi(port_no));
 		}
 		else if(authorization_check==user_not_found)
 		{
